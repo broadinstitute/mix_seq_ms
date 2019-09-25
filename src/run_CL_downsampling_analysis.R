@@ -1,9 +1,17 @@
-run_CL_downsampleing_analysis <- function(cur_expt) {
+get_subsample_results <- function(n_CLs, used_genes = NULL) {
+  cur_CLs <- sample_n(data_frame(CL = all_CLs), size = n_CLs, replace = FALSE)$CL
+  usamps <- which(dat$sample_info$CCLE_ID %in% cur_CLs)
+  cur_limma_res <- fit_viability_models(dat$profile_mat[, usamps,drop=FALSE], dat$sample_info[usamps,], CL_df, used_genes = used_genes)
+  return(cur_limma_res)
+}
+
+run_CL_downsampling_analysis <- function(cur_expt) {
+  
   #PARAMS
   min_LFC <- 1
   min_counts_per_gene <- 5
   min_det_samples <- 0.05
-  n_reps <- 20
+  n_reps <- 100
   min_size <- 5
   size_step <- 5
   examp_n <- c(5, 10, 20, 40)
@@ -19,14 +27,7 @@ run_CL_downsampleing_analysis <- function(cur_expt) {
   
   poss_sizes <- seq(from = min_size, to = length(all_CLs), by = size_step)
   poss_sizes[poss_sizes != length(all_CLs)]
-  
-  get_subsample_results <- function(n_CLs, used_genes = NULL) {
-    cur_CLs <- sample_n(data_frame(CL = all_CLs), size = n_CLs, replace = FALSE)$CL
-    usamps <- which(dat$sample_info$CCLE_ID %in% cur_CLs)
-    cur_limma_res <- fit_viability_models(dat$profile_mat[, usamps,drop=FALSE], dat$sample_info[usamps,], CL_df, used_genes = used_genes)
-    return(cur_limma_res)
-  }
-  
+ 
   doMC::registerDoMC(cores = 3)
   res <- ldply(poss_sizes, function(cur_size) {
     print(cur_size)
@@ -38,33 +39,35 @@ run_CL_downsampleing_analysis <- function(cur_expt) {
       
       data.frame(size = cur_size, 
                  it = ii,
-                 n_sig_avg = sum(cur_limma_res$res_avg$adj.P.Val < q_thresh & abs(cur_limma_res$res_avg$logFC) > min_LFC),
-                 n_sig_int = sum(cur_limma_res$res_int$adj.P.Val < q_thresh & abs(cur_limma_res$res_int$logFC) > min_LFC),
-                 n_sig_slope = sum(cur_limma_res$res_slope$adj.P.Val < q_thresh & abs(cur_limma_res$res_slope$logFC) > min_LFC),
+                 n_sig_avg = sum(cur_limma_res$res_avg$adj.P.Val < globals$q_thresh & abs(cur_limma_res$res_avg$logFC) > min_LFC),
+                 n_sig_int = sum(cur_limma_res$res_int$adj.P.Val < globals$q_thresh & abs(cur_limma_res$res_int$logFC) > min_LFC),
+                 n_sig_slope = sum(cur_limma_res$res_slope$adj.P.Val < globals$q_thresh & abs(cur_limma_res$res_slope$logFC) > min_LFC),
                  avg_cor = avg_cor,
                  int_cor = int_cor,
                  slope_cor = slope_cor)
-    })
+    }, .parallel = TRUE)
   })
     
   #add data point with all 
   res %<>% rbind(
     data.frame(size = length(all_CLs), 
                it = 1,
-               n_sig_avg = sum(limma_res$res_avg$adj.P.Val < q_thresh & abs(limma_res$res_avg$logFC) > min_LFC),
-               n_sig_int = sum(limma_res$res_int$adj.P.Val < q_thresh & abs(limma_res$res_int$logFC) > min_LFC),
-               n_sig_slope = sum(limma_res$res_slope$adj.P.Val < q_thresh & abs(limma_res$res_slope$logFC) > min_LFC),
+               n_sig_avg = sum(limma_res$res_avg$adj.P.Val < globals$q_thresh & abs(limma_res$res_avg$logFC) > min_LFC),
+               n_sig_int = sum(limma_res$res_int$adj.P.Val < globals$q_thresh & abs(limma_res$res_int$logFC) > min_LFC),
+               n_sig_slope = sum(limma_res$res_slope$adj.P.Val < globals$q_thresh & abs(limma_res$res_slope$logFC) > min_LFC),
                avg_cor = 1,
                int_cor = 1,
                slope_cor = 1))
-  write_rds(res, file.path(results_dir, 'CL_downsampling_results.rds'))
+  dat <- list(res = res, used_genes = used_genes)
+  write_rds(dat, file.path(results_dir, sprintf('CL_downsampling_results_%s.rds', cur_expt$expt_name)))
 }
 
 
 make_CL_downsampling_figs <- function(cur_expt) {
-  
+  dat <- read_rds(file.path(results_dir, sprintf('CL_downsampling_results_%s.rds', cur_expt$expt_name)))
+
   #aggregate stats across reps
-  res_avg <- res %>% 
+  res_avg <- dat$res %>% 
     dplyr::group_by(size) %>% 
     dplyr::summarise(
       avg_avg = mean(n_sig_avg),
@@ -81,38 +84,9 @@ make_CL_downsampling_figs <- function(cur_expt) {
       se_slopeC = sd(slope_cor)/sqrt(n_reps)
     )
   
-  # g1 <- ggplot(res_avg, aes(size, avg_avg)) + 
-  #   geom_point() + geom_line() +
-  #   geom_errorbar(aes(ymax = avg_avg + se_avg, ymin = avg_avg - se_avg)) +
-  #   ggtitle('Avg. response') +
-  #   ylab('N sig genes') +
-  #   xlab('Num Cell Lines') +
-  #   cdsr::scale_color_Publication() + 
-  #   cdsr::theme_Publication() +
-  #   ylim(0, NA)
-  
-  # g2 <- ggplot(res_avg, aes(size, avg_int)) +
-  #   geom_point() + geom_line() +
-  #   geom_errorbar(aes(ymax = avg_int + se_int,ymin = avg_int - se_int)) +
-  #   ggtitle('Viability-independent') +
-  #   ylab('N sig genes') +
-  #   xlab('Num Cell Lines')+
-  #   cdsr::scale_color_Publication() +
-  #   cdsr::theme_Publication() +
-  #   ylim(0, NA)
-  # 
-  # g3 <- ggplot(res_avg, aes(size, avg_slope)) +
-  #   geom_point() + geom_line() +
-  #   geom_errorbar(aes(ymax = avg_slope + se_slope,ymin = avg_slope - se_slope)) +
-  #   ggtitle('Viability-related') +
-  #   ylab('N sig genes') +
-  #   xlab('Num Cell Lines')+
-  #   cdsr::scale_color_Publication() +
-  #   cdsr::theme_Publication() +
-  #   ylim(0, NA)
-  
   ggplot(res_avg, aes(size, avg_avgC)) + 
-    geom_point() + geom_line() +
+    geom_point() + 
+    geom_line() +
     geom_errorbar(aes(ymax = avg_avgC + se_avgC, ymin = avg_avgC - se_avgC)) +
     ggtitle('Avg. response') +
     ylab('Correlation with full profile') +
@@ -124,7 +98,8 @@ make_CL_downsampling_figs <- function(cur_expt) {
   ggsave(file.path(fig_dir, 'trametinib_downsampling_avgC.png'), width = 3.5, height = 3.5)
   
   ggplot(res_avg, aes(size, avg_intC)) + 
-    geom_point() + geom_line() +
+    geom_point() + 
+    geom_line() +
     geom_errorbar(aes(ymax = avg_intC + se_intC, ymin = avg_intC - se_intC)) +
     ggtitle('Viability-independent') +
     ylab('Correlation with full profile') +
@@ -135,9 +110,10 @@ make_CL_downsampling_figs <- function(cur_expt) {
     geom_vline(xintercept = examp_n, linetype = 'dashed', color = 'red')
   ggsave(file.path(fig_dir, 'trametinib_downsampling_intC.png'), width = 3.5, height = 3.5)
   
-  
+
   ggplot(res_avg, aes(size, avg_slopeC)) + 
-    geom_point() + geom_line() +
+    geom_point() + 
+    geom_line() +
     geom_errorbar(aes(ymax = avg_slopeC + se_slopeC, ymin = avg_slopeC - se_slopeC)) +
     ggtitle('Viability-related') +
     ylab('Correlation with full profile') +
@@ -148,9 +124,11 @@ make_CL_downsampling_figs <- function(cur_expt) {
     geom_vline(xintercept = examp_n, linetype = 'dashed', color = 'red')
   ggsave(file.path(fig_dir, 'trametinib_downsampling_slopeC.png'), width = 3.5, height = 3.5)
   
+  out_dir <- file.path(results_dir, cur_expt$expt_name)
+  limma_res <- read_rds(file.path(out_dir, 'limma_res.rds'))
   
   make_subsample_scatter <- function(cur_N) {
-    cur_limma_res <- get_subsample_results(cur_N, used_genes = used_genes)
+    cur_limma_res <- get_subsample_results(cur_N, used_genes = dat$used_genes)
     comb <- full_join(cur_limma_res$res_avg, limma_res$res_avg, by = 'Gene', suffix = c('_sub', '_full'))
     g1 <- ggplot(comb, aes(logFC_full, logFC_sub)) + 
       geom_point(pch = 21, size = 1.5, fill = 'black', color = 'white', stroke = 0.1) + 

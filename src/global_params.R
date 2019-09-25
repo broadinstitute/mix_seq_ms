@@ -11,6 +11,7 @@ globals <- list(
   pca_prior_cnt = 10,
   q_thresh = 0.1,
   gsea_top_n = 50,
+  min_frac_cells_det = 0.05,
   TP53_WT_cls_pool22 = c('LNCAPCLONEFGC_PROSTATE',
                    'DKMG_CENTRAL_NERVOUS_SYSTEM',
                    'NCIH226_LUNG',

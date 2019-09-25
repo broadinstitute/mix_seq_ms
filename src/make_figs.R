@@ -39,26 +39,34 @@ make_hash_tag_qc_figs()
 source(here::here('src', 'make_trametinib_tc_figs.R'))
 make_trametinib_tc_figs()
 
-
 source(here::here('src', 'make_CCchange_AUC_plot.R'))
 make_CCchange_AUC_plot()
 
 source(here::here('src', 'make_PC_AUC_compare_fig.R'))
 make_PC_AUC_compare_fig()
 
-
 source(here::here('src', 'make_viability_sig_plots.R'))
 make_viability_sig_plots(sc_DE_meta$trametinib_24hr_expt3)
-
 
 source(here::here('src', 'make_PCA_example_figures.R'))
 make_PCA_example_figures(sc_DE_meta$trametinib_24hr_expt3)
 
-
 source(here::here('src', 'make_global_dimred.R'))
 make_global_dimred()
-
 
 source(here::here('src', 'predictive_model_compare.R'))
 run_predictive_model_compare()
 make_predictive_model_figs()
+
+source(here::here('src', 'run_CL_downsampling_analysis.R'))
+run_CL_downsampling_analysis(sc_DE_meta$trametinib_24hr_expt3)
+make_CL_downsampling_figs(sc_DE_meta$trametinib_24hr_expt3)
+
+source(here::here('src', 'make_subclone_response_figs.R'))
+make_subclone_response_figs(sc_DE_meta$trametinib_24hr_expt1, targ_CL = 'IALM_LUNG')
+
+source(here::here('src', 'make_bortezomib_subpop_figs.R'))
+make_bortezomib_subpop_figs(c('RCC10RGB_KIDNEY', 'SNU1079_BILIARY_TRACT', 'RCM1_LARGE_INTESTINE', 'RERFLCAD1_LUNG', 'TEN_ENDOMETRIUM'))
+
+source(here::here('src', 'make_dabrafenib_heterogeneity_figs.R'))
+make_dabrafenib_heterogeneity_figs()

@@ -82,7 +82,7 @@ make_CCchange_AUC_plot <- function() {
     guides(fill = guide_legend(title = 'Phase')) +
     cdsr::scale_fill_Publication() +
     theme(axis.text = element_text(angle = 90, hjust = 1)) 
-  ggsave(file.path(results_dir, 'figures', 'CC_wphase_all_compounds.png'), width = 4.5, height = 3.5)
+  ggsave(file.path(fig_dir, 'CC_wphase_all_compounds.png'), width = 4.5, height = 3.5)
   
  
   #MAKE SCATTERPLOT OF DELTA-PHASE SENS CORRELATIONS
@@ -104,6 +104,6 @@ make_CCchange_AUC_plot <- function() {
     cdsr::theme_Publication() +
     xlab('S-phase sensitivity corr.') +
     ylab('G2/M-phase sensitivity corr.')
-  ggsave(file.path(results_dir, 'figures', 'G2M_S_sens_corrs.png'), width = 4, height = 3.5)
+  ggsave(file.path(fig_dir, 'G2M_S_sens_corrs.png'), width = 4, height = 3.5)
 
 }

@@ -87,7 +87,7 @@ get_rf_xv_results <- function(input_data, kfold, fids, n_top_feat) {
       DEPMAP_ID = names(cur_test),
       prediction = test_preds,
       obs = rf_df[cur_test, 'response']
-    )
+    ) 
   }, .parallel = TRUE)
 }
 
@@ -99,8 +99,6 @@ run_predictive_model_compare <- function() {
   n_top_feat <- 1000
   random_seed <- 1
   kfold <- 10
-  model_type <- 'regression'
-  models <- c('rf')
  
   feat_dat <- list(
     GE = list(
@@ -160,7 +158,6 @@ run_predictive_model_compare <- function() {
     n_LFC_CLs <- length(input_data$y)
     LFC_CLs <- names(input_data$y)
     LFC_results <- get_rf_xv_results(input_data, kfold, fids = fids, n_top_feat = n_top_feat)
-
     
     #NOW TRY MODELS USING BASELINE FEATURES
     X <- list(
@@ -183,29 +180,28 @@ run_predictive_model_compare <- function() {
       pred_mod_errs <- rbind(
         data_frame(type = 'matched_sample_pred',
                    n = length(baseline_matched_CLs),
-                   pear_cor = cor.test(baseline_matched_results$prediction, baseline_matched_results$obs)$estimate,
-                   pear_cor_uci = cor.test(baseline_matched_results$prediction, baseline_matched_results$obs)$conf.int[2],
-                   pear_cor_lci = cor.test(baseline_matched_results$prediction, baseline_matched_results$obs)$conf.int[1]),
+                   corr_R2 = caret::R2(baseline_matched_results$prediction, baseline_matched_results$obs, form = 'corr'),
+                   trad_R2 = caret::R2(baseline_matched_results$prediction, baseline_matched_results$obs, form = 'traditional')),
         data_frame(type = 'all_sample_pred',
                    n = length(baseline_all_CLs),
-                   pear_cor = cor.test(baseline_all_results$prediction, baseline_all_results$obs)$estimate,
-                   pear_cor_uci = cor.test(baseline_all_results$prediction, baseline_all_results$obs)$conf.int[2],
-                   pear_cor_lci = cor.test(baseline_all_results$prediction, baseline_all_results$obs)$conf.int[1]),
+                   corr_R2 = caret::R2(baseline_all_results$prediction, baseline_all_results$obs, form = 'corr'),
+                   trad_R2 = caret::R2(baseline_all_results$prediction, baseline_all_results$obs, form = 'traditional')),
         data_frame(type = 'LFC_pred',
                    n = length(LFC_CLs),
-                   pear_cor = cor.test(LFC_results$prediction, LFC_results$obs)$estimate,
-                   pear_cor_uci = cor.test(LFC_results$prediction, LFC_results$obs)$conf.int[2],
-                   pear_cor_lci = cor.test(LFC_results$prediction, LFC_results$obs)$conf.int[1])
-      ) %>% mutate(expt = cur_expt$expt_name)
+                   corr_R2 = caret::R2(LFC_results$prediction, LFC_results$obs, form = 'corr'),
+                   trad_R2 = caret::R2(LFC_results$prediction, LFC_results$obs, form = 'traditional'))
+      ) %>% dplyr::mutate(expt = cur_expt$expt_name)
       return(pred_mod_errs)
   })
   
   write_rds(all_pmod_results, file.path(results_dir, 'all_pmod_results.rds'))
 } 
 
+
+
 make_predictive_model_figs <- function() {
   all_pmod_results <- read_rds(file.path(results_dir, 'all_pmod_results.rds'))
-  all_pmod_results %<>% mutate(
+  all_pmod_results %<>% dplyr::mutate(
     expt = str_replace_all(expt, '_expt10', '_24hr_expt10')
   )
   used_expts <- c('Trametinib_6hr_expt1',
@@ -215,7 +211,6 @@ make_predictive_model_figs <- function() {
                   'Idasanutlin_24hr_expt1',
                   'Trametinib_24hr_expt3', 
                   'Dabrafenib_24hr_expt3',
-                  # 'CGS15943_6hr_expt3',
                   'BRD3379_6hr_expt3',
                   'BRD3379_24hr_expt3',
                   'Afatinib_24hr_expt10',
@@ -226,24 +221,22 @@ make_predictive_model_figs <- function() {
                   'Taselisib_24hr_expt10',
                   'JQ1_24hr_expt10')
   
+  pmod_results_wide <- 
+    all_pmod_results %>% 
+      dplyr::select(expt, type, trad_R2) %>% 
+      tidyr::spread(type, trad_R2) %>% 
+    dplyr::filter(expt %in% used_expts) %>% 
+    dplyr::mutate(time = str_match(expt, '^[:alnum:]+_([:alnum:]+)')[,2],
+                  drug = str_match(expt, '^([:alnum:]+)_')[,2]) 
   
-  ov_R2_vals <- all_pmod_results %>% 
-    filter(expt %in% used_expts) %>% 
-    distinct(expt, type, .keep_all=TRUE) %>% 
-    dplyr::select(type, expt, ov_R2) %>% 
-    reshape2::dcast(expt ~ type, value.var = 'ov_R2') %>% 
-    mutate(time = str_match(expt, '^[:alnum:]+_([:alnum:]+)')[,2],
-           drug = str_match(expt, '^([:alnum:]+)_')[,2]) 
-  
-  #scatterplot both times, all samples
-  ov_R2_vals %>% 
+  pmod_results_wide %>% 
     ggplot(aes(all_sample_pred, LFC_pred)) + 
     geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.2) +
     geom_abline() +
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
     ggrepel::geom_label_repel(aes(label = drug, color = time), size = 3, label.padding = 0.1) +
-    coord_cartesian(xlim = c(-0.1, 0.6), ylim = c(-0.1, 0.6)) +
+    # coord_cartesian(xlim = c(-0.1, 0.6), ylim = c(-0.1, 0.6)) +
     xlab('Baseline features\n(R2)') +
     ylab('Transcriptional responses\n(R2)') +
     guides(color = F) + 
@@ -252,74 +245,40 @@ make_predictive_model_figs <- function() {
     cdsr::scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_all.png'), width = 4, height = 4)
   
-  
-  n_vals <- all_pmod_results %>% 
-    filter(expt %in% used_expts) %>% 
-    distinct(expt, type, .keep_all=T) %>% 
-    dplyr::select(type, expt, n) %>% 
-    reshape2::dcast(expt ~ type, value.var = 'n')%>% 
-    mutate(time = str_match(expt, '^[:alnum:]+_([:alnum:]+)')[,2],
-           drug = str_match(expt, '^([:alnum:]+)_')[,2]) %>% 
-    left_join(ov_R2_vals %>% 
-                mutate(LFC_baseline_diff = LFC_pred - all_sample_pred) %>% 
-                dplyr::select(expt, LFC_baseline_diff), 
-              by = 'expt')
-  ggplot(n_vals, aes(LFC_pred, LFC_baseline_diff)) + 
-    geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.2) +
-    geom_hline(yintercept = 0, linetype = 'dashed') +
-    ggrepel::geom_label_repel(aes(label = drug, color = time), size = 3, label.padding = 0.1) +
-    xlab('LFC sample size') +
-    ylab('Prediction accuracy diff.\n(LFC_R2 - Baseline_R2)') +
-    guides(color = F) + 
-    cdsr::theme_Publication() +
-    cdsr::scale_color_Publication() +
-    cdsr::scale_fill_Publication()
-  ggsave(file.path(fig_dir, 'pred_R2_diff_vs_n.png'), width = 4, height = 4)
-  
-  
-  #scatterplot boht times, matched samples
-  ov_R2_vals %>% 
+  pmod_results_wide %>% 
     ggplot(aes(matched_sample_pred, LFC_pred)) + 
     geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.2) +
     geom_abline() +
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
-    ggrepel::geom_label_repel(data = ov_R2_vals,
-                              aes(label = drug, color = time), size = 3, label.padding = 0.1) +
-    coord_cartesian(xlim = c(-0.1, 0.6), ylim = c(-0.1, 0.6)) +
+    ggrepel::geom_label_repel(aes(label = drug, color = time), size = 3, label.padding = 0.1) +
+    # coord_cartesian(xlim = c(-0.1, 0.6), ylim = c(-0.1, 0.6)) +
     xlab('Baseline features\n(R2)') +
     ylab('Transcriptional responses\n(R2)') +
-    guides(color = F) +
+    guides(color = F) + 
     cdsr::theme_Publication() +
     cdsr::scale_color_Publication() +
     cdsr::scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_matched.png'), width = 4, height = 4)
   
-  #matched samples, 24hr only
-  ov_R2_vals %>% 
-    filter(time == '24hr') %>% 
-    ggplot(aes(matched_sample_pred, LFC_pred)) + 
-    geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.2) +
-    geom_abline() +
-    geom_vline(xintercept = 0, linetype = 'dashed') + 
-    geom_hline(yintercept = 0, linetype = 'dashed') +
-    ggrepel::geom_label_repel(aes(label = drug, color = time), size = 2.5, label.padding = 0.1) +
-    coord_cartesian(xlim = c(-0.1, 0.6), ylim = c(-0.1, 0.6)) +
-    xlab('Baseline features\n(R2)') +
-    ylab('Transcriptional responses\n(R2)') +
-    cdsr::theme_Publication() +
-    guides(color = F) + 
-    cdsr::scale_color_Publication() +
-    cdsr::scale_fill_Publication() 
-  ggsave(file.path(fig_dir, 'pred_R2_scatter_matched_24hr.png'), width = 4, height = 4)
-  
-  
-  ov_R2_vals %>% 
-    dplyr::filter(grepl('6hr', expt)) %>% 
-    ggplot(aes(all_sample_pred, LFC_pred)) + 
-    geom_point() +
-    geom_abline() +
-    geom_vline(xintercept = 0, linetype = 'dashed') + 
-    geom_hline(yintercept = 0, linetype = 'dashed')
+  n_results_wide <- 
+    all_pmod_results %>% 
+    dplyr::select(expt, type, n) %>% 
+    tidyr::spread(type, n) %>% 
+    dplyr::filter(expt %in% used_expts) %>% 
+    left_join(pmod_results_wide, by = 'expt', suffix = c('_n', '_R2')) %>% 
+    dplyr::mutate(LFC_baseline_diff = LFC_pred_R2 - all_sample_pred_R2)
 
+  ggplot(n_results_wide %>% dplyr::filter(time == '24hr'), aes(LFC_pred_n, LFC_baseline_diff)) + 
+    geom_point(fill = 'black', pch = 21, size = 3, color = 'white', stroke = 0.2) +
+    geom_hline(yintercept = 0, linetype = 'dashed') +
+    ggrepel::geom_label_repel(aes(label = drug), size = 3, label.padding = 0.1) +
+    xlab('LFC sample size') +
+    ylab('Prediction accuracy diff.\n(LFC_R2 - Baseline_R2)') +
+    guides(color = F) + 
+    cdsr::theme_Publication() 
+    # cdsr::scale_color_Publication() +
+    # cdsr::scale_fill_Publication()
+  ggsave(file.path(fig_dir, 'pred_R2_diff_vs_n.png'), width = 4, height = 4)
+  
 }
