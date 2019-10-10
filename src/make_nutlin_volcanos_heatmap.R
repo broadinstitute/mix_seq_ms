@@ -37,7 +37,9 @@ make_nutlin_volcanos_heatmap <- function() {
     ggplot(aes(logFC, -log10(P.Value))) +
     geom_point(data = . %>% filter(!is_sig), fill = 'black', pch = 21, size = 1.5, color = 'gray', stroke = 0.1, alpha = 0.5) +
     geom_point(data = . %>% filter(is_sig), fill = 'darkred', pch = 21, size = 1.5, alpha = 0.8, color = 'gray', stroke = 0.1) +
-    geom_label_repel(data = . %>% filter(is_sig) %>% arrange(desc(abs(logFC))) %>% head(n_label),
+    geom_label_repel(data = . %>% 
+                       dplyr::filter(is_sig) %>% 
+                       dplyr::arrange(dplyr::desc(abs(logFC))) %>% head(n_label),
                      aes(label = Gene),
                      size = 2.5, label.padding = 0.2) +
     geom_vline(xintercept = 0, linetype = 'dashed') + 

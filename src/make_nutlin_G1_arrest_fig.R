@@ -9,10 +9,11 @@ make_nutlin_G1_arrest_fig <- function() {
   mod_scores %<>% full_join(CL_df, by = "CCLE_ID")
   mod_scores %<>% mutate(TP53_status = ifelse(CCLE_ID %in% globals$TP53_WT_cls_pool22, 'TP53 WT', 'TP53 Mut'))
   
-  ggplot(mod_scores, aes(AUC_avg, delta_G1_frac, fill = TP53_status)) +
-    geom_errorbar(aes(ymax = delta_G1_high, ymin = delta_G1_low), width = 0.01) +
+  ggplot(mod_scores %>% filter(Phase == 'G0/G1'), 
+         aes(AUC_avg, delta_frac, fill = TP53_status)) +
+    geom_errorbar(aes(ymax = delta_high, ymin = delta_low), width = 0.01) +
     geom_point(alpha = 0.75, size = 4, pch = 21, color = 'white', stroke = 0.4) +
-    ylab('Delta G1 fraction') +
+    ylab('Delta G0/G1 fraction') +
     xlab('Nutlin sensitivity (AUC)') +
     geom_hline(yintercept = 0, linetype = 'dashed') +
     cdsr::theme_Publication() +

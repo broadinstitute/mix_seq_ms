@@ -80,17 +80,12 @@ make_GPX4_figs <- function() {
   #average response
   limma_res <-  read_rds(file.path(out_dir, 'limma_res.rds'))
   
-  top_label <- limma_res$res_avg %>% 
-    dplyr::filter(!(Gene %in% c(glycan_whitelist, lipid_whitelist))) %>% 
-    dplyr::arrange(dplyr::desc(abs(logFC))) %>% 
-    head(n_label) %>% 
-    .[['Gene']]
   limma_res$res_avg %>% 
     dplyr::mutate(is_sig = adj.P.Val < globals$q_thresh) %>% 
     ggplot(aes(logFC, -log10(P.Value))) +
     geom_point(fill = 'black', color = 'white', stroke = 0.1, pch = 21, size = 2, alpha = 0.75) +
     geom_label_repel(data = . %>% 
-                       arrange(desc(abs(logFC))) %>% head(10), 
+                       dplyr::arrange(dplyr::desc(abs(logFC))) %>% head(10), 
                      aes(label = Gene),
                      size = 2.5,
                      label.padding = 0.15) +
@@ -122,7 +117,9 @@ make_GPX4_figs <- function() {
     ggplot(aes(logFC, -log10(P.Value))) +
     geom_point(color = 'black', size = 1, alpha = 0.5) +
     geom_point(data = . %>% filter(Gene == 'GPX4'), color = 'red', size = 2, alpha = 1) +
-    geom_label_repel(data = . %>% arrange(desc(abs(logFC))) %>% head(n_label),
+    geom_label_repel(data = . %>% 
+                       dplyr::arrange(dplyr::desc(abs(logFC))) %>% 
+                       head(n_label),
                      aes(label = Gene),
                      size = 2.5) +
     geom_vline(xintercept = 0, linetype = 'dashed') + 

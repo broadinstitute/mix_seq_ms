@@ -77,17 +77,25 @@ make_subclone_response_figs <- function(expt, targ_CL) {
       dplyr::group_by(cluster) %>% 
       dplyr::summarise(tSNE_1 = median(tSNE_1), tSNE_2 = median(tSNE_2)) %>% 
       dplyr::mutate(cluster_label = paste0('cluster ', cluster))
+    tavgs <- df %>% 
+      dplyr::filter(tcond != 'DMSO') %>% 
+      dplyr::group_by(cluster) %>% 
+      dplyr::summarise(tSNE_t1 = median(tSNE_1), tSNE_t2 = median(tSNE_2)) %>% 
+      dplyr::mutate(cluster_label = paste0('cluster ', cluster))
+    seg_avgs <- full_join(avgs, tavgs, by = 'cluster')
     
     ggplot(df, aes(tSNE_1, tSNE_2)) +
-      geom_point(aes(fill = tcond, size = cluster), pch = 21, color = 'white', stroke = 0.1, alpha = 0.75) +
+      geom_point(aes(fill = tcond), size = 2, pch = 21, color = 'white', stroke = 0.1, alpha = 0.75) +
       xlab('tSNE 1') + ylab('tSNE 2') +
-      scale_size_manual(values = c(`1` = 1.5, `2` = 3)) +
+      # scale_size_manual(values = c(`1` = 1.5, `2` = 3)) +
       scale_fill_manual(values = c('darkgray', 'darkblue')) +
       cdsr::theme_Publication() +
       geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
-      guides(fill = guide_legend(nrow = 2, title = element_blank(), override.aes = list(size = 3)),
-             size = guide_legend(nrow = 2,override.aes = list(fill=  'black')))
-    ggsave(file.path(fig_dir, sprintf('%s_%s_cluster.png', targ_CL, expt$expt_name)), width = 3.5, height = 3.5)
+      geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
+                   arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
+      guides(fill = guide_legend(title = element_blank(), override.aes = list(size = 3)))
+             # size = guide_legend(nrow = 2,override.aes = list(fill=  'black')))
+    ggsave(file.path(fig_dir, sprintf('%s_%s_cluster.png', targ_CL, expt$expt_name)), width = 4, height = 4)
 
     # ggplot(df, aes(tSNE_1, tSNE_2, color = Phase, shape = cluster)) +
     #   geom_point(size = 2, alpha = 0.75) +
@@ -155,9 +163,10 @@ make_subclone_response_figs <- function(expt, targ_CL) {
                                   arrange(dplyr::desc(abs(logFC_diff))) %>% 
                                   head(15) %>% 
                                   rbind(
-                                    df %>% arrange(desc(abs(logFC_CL1 + logFC_CL2))) %>% 
+                                    df %>% 
+                                      dplyr::arrange(dplyr::desc(abs(logFC_CL1 + logFC_CL2))) %>% 
                                     head(5)) %>% 
-                                  distinct(Gene, .keep_all=T),
+                                  dplyr::distinct(Gene, .keep_all=T),
                                 aes(label = Gene, color = -log10(FDR)), 
                                 size = 2.5, label.padding = 0.1) +
       scale_fill_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
@@ -169,7 +178,7 @@ make_subclone_response_figs <- function(expt, targ_CL) {
     tt_CL2_CL1 %>% 
       ggplot(aes(logFC, -log10(PValue))) +
       geom_point(aes(color = FDR < 0.1), size = 0.75, alpha = 0.5) +
-      geom_label_repel(data = . %>% arrange(dplyr::desc(abs(logFC))) %>% head(10),
+      geom_label_repel(data = . %>% dplyr::arrange(dplyr::desc(abs(logFC))) %>% head(10),
                        aes(label = Gene),
                        size = 2.5) +
       geom_vline(xintercept = 0, linetype = 'dashed') + 
@@ -187,7 +196,7 @@ make_subclone_response_figs <- function(expt, targ_CL) {
     tt_diff %>% 
       ggplot(aes(logFC, -log10(PValue))) +
       geom_point(aes(color = FDR < 0.1), size = 0.75, alpha = 0.5) +
-      geom_label_repel(data = . %>% arrange(dplyr::desc(abs(logFC))) %>% head(10),
+      geom_label_repel(data = . %>% dplyr::arrange(dplyr::desc(abs(logFC))) %>% head(10),
                        aes(label = Gene),
                        size = 2.5) +
       geom_vline(xintercept = 0, linetype = 'dashed') + 

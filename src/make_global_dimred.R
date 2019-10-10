@@ -11,7 +11,11 @@ make_global_dimred <- function() {
   umap_nneighbors <- 15
   umap_mindist <- 0.7
   
-  used_expts <- setdiff(names(sc_DE_meta), c('GPX4_expt2', 'navitoclax_24hr_expt3', 'everolimus_6hr_expt3', 'Trametinib_expt10'))
+  used_expts <- setdiff(names(sc_DE_meta), c('GPX4_expt2', 
+                                             'navitoclax_24hr_expt3',
+                                             'AZD5591_expt10',
+                                             'everolimus_6hr_expt3', 
+                                             'Trametinib_expt10'))
   all_res <- llply(sc_DE_meta[used_expts], function(cur_expt) {
     print(sprintf('Processing expt %s', cur_expt$expt_name))
     out_dir <- file.path(results_dir, cur_expt$expt_name)
@@ -79,8 +83,8 @@ make_global_dimred <- function() {
                                reduction = 'pca',
                                n.neighbors = umap_nneighbors,
                                min.dist =  umap_mindist, 
-                               metric = metric, 
-                               seed.use = 42,
+                               metric = metric,
+                               seed.use = 1,
                                verbose=F)
   
   df <- Embeddings(new_obj, reduction = 'umap') %>% 
@@ -108,6 +112,7 @@ make_global_dimred <- function() {
             Dabrafenib_24hr = '#00BE67',
             Everolimus_24hr = '#00C19A',
             Gemcitabine_24hr = '#FF68A1',
+            Navitoclax_24hr = 'darkgreen',
             JQ1_24hr = '#00B8E7',
             Nutlin_24hr = '#00A9FF',
             Nutlin_6hr = '#8494FF',
@@ -117,7 +122,7 @@ make_global_dimred <- function() {
             Trametinib_6hr = '#00BFC4')
   stopifnot(all(df$drug_time %in% names(cols)))
   
-  zoom_x <- c(2.5, 9); zoom_y <- c(-5, 2)
+  zoom_x <- c(2.5, 7.5); zoom_y <- c(1, 8)
   
   #Make overall plot colored by treatment
   g <- df %>% 
@@ -166,9 +171,9 @@ make_global_dimred <- function() {
     geom_point(aes(fill = sens, text = sprintf('%s\n%s\n%.3f', drug_time, CCLE_ID, sens)), color = 'white', stroke = 0.1, pch = 21, size = 1.8) +
     guides(color = F, fill = guide_colorbar(title = 'sensitivity')) +
     geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
-    # cdsr::theme_Publication()  +
+    cdsr::theme_Publication()  +
     scale_color_manual(values = cols) +
-    scale_fill_gradient(limits = sens_clims, oob = scales::squish) 
-  ggsave(file.path(fig_dir, 'full_LFC_umap_sens.png'), plot = g, width = 5, height = 4)
+    scale_fill_gradient(limits = sens_clims, oob = scales::squish) +
+  ggsave(file.path(fig_dir, 'full_LFC_umap_sens.png'), plot = g, width = 4, height = 4)
 
 }

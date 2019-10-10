@@ -22,9 +22,10 @@ make_cell_dist_fig <- function() {
     cdsr::theme_Publication() +
     ylab('Number of cells') +
     cdsr::scale_fill_Publication() +
-    theme(axis.text.x = element_blank()) +
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) +
     guides(fill = guide_legend(title = element_blank(), nrow = 2))
   ggsave(file.path(fig_dir, 'cell_quality_dists.png'),
-         width = 4, height = 2.5)
+         width = 4, height = 3)
   
 }

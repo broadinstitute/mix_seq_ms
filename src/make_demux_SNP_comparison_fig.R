@@ -58,7 +58,7 @@ make_demux_SNP_comparison_fig <- function() {
   
   #doublet FP vs FN 
   ggplot(expt_stats, aes(FP_rate, FN_rate)) + 
-    geom_point(size = 3) +
+    geom_point(size = 2.5) +
     xlab('False-positive\ndoublets (%)') +
     ylab('False-negative\ndoublets (%)') + 
     cdsr::theme_Publication()

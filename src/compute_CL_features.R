@@ -63,12 +63,22 @@ get_drug_sensitivity_data <- function(drug_name) {
       dplyr::filter(!is.na(DEPMAP_ID)) %>% 
       as.data.frame()
   } else if (drug_name == 'azd5591') {
-    PRISM_AUC <- read_csv('~/CPDS/jmm-scratch/MCL1/results/all_comb_curve_fits_D3.csv') %>% 
-      filter(brd_id == 'Servier-Nat') %>% 
-      dplyr::select(CCLE_ID = cell_line_id,
+    PRISM_AUC <- read_csv(here::here('data', 'MCL1_Inhibitors_MTS011/BRD-K00005264-001-01-9/DRC_table.csv')) %>% 
+      dplyr::select(CCLE_ID = ccle_name,
                     PRISM_AUC = auc) %>% 
-      dplyr::mutate(DEPMAP_ID = celllinemapr::ccle.to.arxspan(CCLE_ID, ignore.problems = F)) %>% 
-      dplyr::select(DEPMAP_ID, PRISM_AUC)
+      dplyr::mutate(DEPMAP_ID = celllinemapr::ccle.to.arxspan(CCLE_ID, ignore.problems = T)) %>% 
+      dplyr::filter(!is.na(DEPMAP_ID)) %>% 
+      dplyr::select(DEPMAP_ID, PRISM_AUC) %>% 
+      dplyr::group_by(DEPMAP_ID) %>% 
+      dplyr::summarise(PRISM_AUC = mean(PRISM_AUC, na.rm=T)) %>% 
+      dplyr::ungroup()
+     
+    # PRISM_AUC <- read_csv('~/CPDS/jmm-scratch/MCL1/results/all_comb_curve_fits_D3.csv') %>% 
+    #   filter(brd_id == 'Servier-Nat') %>% 
+    #   dplyr::select(CCLE_ID = cell_line_id,
+    #                 PRISM_AUC = auc) %>% 
+    #   dplyr::mutate(DEPMAP_ID = celllinemapr::ccle.to.arxspan(CCLE_ID, ignore.problems = F)) %>% 
+    #   dplyr::select(DEPMAP_ID, PRISM_AUC)
   } else {
     cur_broad_id <- all_PRISM_AUC %>% 
       distinct(broad_id, name) %>% 

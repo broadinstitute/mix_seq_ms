@@ -2,63 +2,54 @@
 sc_expts <- list(
   #EXPT1
     Trametinib_6hr_expt1 = list(
-      # data_sets = list(expt = 'Trametinib_6hr'),
       expt_name = 'Trametinib_6hr_expt1',
       taiga_name = 'trametinib_6hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Trametinib_24hr_expt1 = list(
-      # data_sets = list(expt = 'Trametinib_24hr'),
       expt_name = 'Trametinib_24hr_expt1',
       taiga_name = 'trametinib_24hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Bortezomib_6hr_expt1 = list(
-      # data_sets = list(expt = 'Bortezomib_6hr'),
       expt_name = 'Bortezomib_6hr_expt1',
       taiga_name = 'bortezomib_6hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Bortezomib_24hr_expt1 = list(
-      # data_sets = list(expt = 'Bortezomib_24hr'),
       expt_name = 'Bortezomib_24hr_expt1',
       taiga_name = 'bortezomib_24hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Idasanutlin_6hr_expt1 = list(
-      # data_sets = list(expt = 'Idasanutlin_6hr'),
       expt_name = 'Idasanutlin_6hr_expt1',
       taiga_name = 'idasanutlin_6hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Idasanutlin_24hr_expt1 = list(
-      # data_sets = list(expt = 'Idasanutlin_24hr'),
       expt_name = 'Idasanutlin_24hr_expt1',
       taiga_name = 'idasanutlin_24hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     DMSO_24hr_expt1 = list(
-      # data_sets = list(expt = 'DMSO_24hr'),
       expt_name = 'DMSO_24hr_expt1',
       taiga_name = 'dmso_24hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     DMSO_6hr_expt1 = list(
-      # data_sets = list(expt = 'DMSO_6hr'),
       expt_name = 'DMSO_6hr_expt1',
       taiga_name = 'dmso_6hr_expt1',
       taiga_version = 2,
       expt_batch = 'expt1'
     ),
     Untreated_6hr_expt1 = list(
-      # data_sets = list(expt = 'Untreated_6hr'),
       expt_name = 'Untreated_6hr_expt1',
       taiga_name = 'untreated_6hr_expt1',
       taiga_version = 2,
@@ -156,12 +147,12 @@ sc_expts <- list(
     ),
   
 #EXPT6
-    # MDM2_expt6 = list(
-    #   expt_name = 'MDM2_expt6',
-    #   taiga_name = NULL,
-    #   taiga_version = NULL,
-    #   expt_batch = 'expt6'
-    # ),
+    MDM2_expt6 = list(
+      expt_name = 'MDM2_expt6',
+      taiga_name = 'mdm2_expt6',
+      taiga_version = 1,
+      expt_batch = 'expt6'
+    ),
 
 #EXPT9
   # untreated_G029442_GFP_24hr_1_expt9 = list(

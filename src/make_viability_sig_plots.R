@@ -74,10 +74,11 @@ make_viability_sig_plots <- function(cur_expt) {
   #load LFC matrix
   dat <- load_compute_CPM_stats(cur_expt, results_dir, type = 'sum', prior_counts = globals$prior_cnt)
   LFC_mat <- t(dat$LFC_mat)
+  baseline_mat <- t(dat$control_CPM)
   
   #make scatterplots of individual gene LFC vs drug sensitivity
   make_gene_LFC_sens_scatter <- function(cur_gene, CL_df, LFC_mat) {
-    cur_df <- CL_df %>% inner_join(data.frame(CCLE_ID = rownames(LFC_mat), LFC = LFC_mat[, cur_gene]))
+    cur_df <- CL_df %>% inner_join(data.frame(CCLE_ID = rownames(LFC_mat), LFC = LFC_mat[, cur_gene], baseline = baseline_mat[, cur_gene]))
     cur_slope <- limma_res$res_slope %>% filter(Gene == cur_gene) %>% .[['logFC']]
     cur_int <- limma_res$res_int %>% filter(Gene == cur_gene) %>% .[['logFC']]
     ggplot(cur_df, aes(sens, LFC)) + 
@@ -89,6 +90,26 @@ make_viability_sig_plots <- function(cur_expt) {
       ylab(sprintf('%s LFC', cur_gene)) +
       cdsr::theme_Publication()
     ggsave(file.path(fig_dir, sprintf('%s_%s_sens_LFC_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
+    
+    # ggplot(cur_df, aes(sens, baseline)) + 
+    #   geom_point(pch = 21, size = 2, alpha = 0.75, fill = 'black', color = 'white', stroke = 0.1) + 
+    #   geom_smooth(method = 'lm') +
+    #   geom_hline(yintercept = 0, linetype = 'dashed') + 
+    #   geom_vline(xintercept = 0, linetype = 'dashed') +
+    #   xlab(sprintf('%s sensitivity', cur_expt$drug_name)) + 
+    #   ylab(sprintf('%s GE', cur_gene)) +
+    #   cdsr::theme_Publication()
+    # ggsave(file.path(fig_dir, sprintf('%s_%s_sens_baseline_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
+    # 
+    # ggplot(cur_df, aes(baseline, LFC)) + 
+    #   geom_point(pch = 21, size = 2, alpha = 0.75, fill = 'black', color = 'white', stroke = 0.1) + 
+    #   geom_smooth(method = 'lm') +
+    #   geom_hline(yintercept = 0, linetype = 'dashed') + 
+    #   geom_vline(xintercept = 0, linetype = 'dashed') +
+    #   xlab(sprintf('%s GE', cur_gene)) + 
+    #   ylab(sprintf('%s LFC', cur_gene)) +
+    #   cdsr::theme_Publication()
+    # ggsave(file.path(fig_dir, sprintf('%s_%s_baseline_LFC_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
   }
   if (cur_expt$expt_name == 'Trametinib_24hr_expt3') {
     l_ply(trametinib_example_genes, make_gene_LFC_sens_scatter, CL_df, LFC_mat)

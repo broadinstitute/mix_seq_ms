@@ -214,6 +214,7 @@ make_predictive_model_figs <- function() {
                   'BRD3379_6hr_expt3',
                   'BRD3379_24hr_expt3',
                   'Afatinib_24hr_expt10',
+                  'Navitoclax_24hr_expt3',
                   'AZD5591_24hr_expt10',
                   'Everolimus_24hr_expt10',
                   'Gemcitabine_24hr_expt10',

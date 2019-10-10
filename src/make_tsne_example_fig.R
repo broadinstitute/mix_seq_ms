@@ -110,7 +110,7 @@ make_tsne_example_fig <- function(expt_params) {
     geom_segment(data = avgs, aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
                  arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
     cdsr::theme_Publication()
-  if (expt_params$drug_name == 'nutlin') {
+  if (expt_params$drug_name == 'idasanutlin') {
     g <- g + geom_point(data = avgs, mapping = aes(x = ct1, y = ct2), size = 0, alpha = 0) + 
       geom_text(data = avgs %>% filter(!TP53_WT), mapping = aes(x = ct1, y = ct2, label = CL_short), color = 'black', size = 2.5) +
       geom_text(data = avgs %>% filter(TP53_WT), mapping = aes(x = ct1, y = ct2, label = CL_short), color = 'darkblue', size = 2.5)
@@ -120,16 +120,24 @@ make_tsne_example_fig <- function(expt_params) {
   
   #cell cycle phase example (specifically for nutlin)
   df %<>% dplyr::mutate(Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
-  g <- ggplot(df %>% filter(cell_quality == 'normal', condition == 'treat'), aes(t1, t2)) +
-    geom_point(aes(alpha = TP53_WT, fill = Phase, size = TP53_WT), pch = 21, color = 'white', alpha = 0.8, stroke = 0.1) +
-    scale_alpha_manual(values = c(`FALSE` = 0.6, `TRUE` = 0.8)) +
-    scale_size_manual(values = c(`FALSE` = 0.6, `TRUE` = 1.3)) +
-    guides(alpha = F, size = F, fill = guide_legend(override.aes = list(size = 3))) +
+  g <- ggplot(df %>% 
+                # dplyr::filter(cell_quality == 'normal', condition == 'treat'),
+              dplyr::filter(cell_quality == 'normal'),
+              aes(t1, t2)) +
+    geom_point(aes(fill = Phase, size = condition, alpha = condition), pch = 21, color = 'white', alpha = 0.7, stroke = 0.1) +
+    scale_alpha_manual(values = c(`control` = 0.4, `treat` = 0.8)) +
+    # scale_size_manual(values = c(`FALSE` = 0.6, `TRUE` = 1.3)) +
+    scale_size_manual(values = c(`control` = 0.4, `treat` = 0.8)) +
+    guides(alpha = F, size = F, fill = guide_legend(override.aes = list(size = 3), nrow = 3),
+           color = guide_legend(nrow = 2)) +
     xlab('tSNE 1') + ylab('tSNE 2') +
     cdsr::theme_Publication() + 
-    cdsr::scale_fill_Publication() 
+    cdsr::scale_fill_Publication()+
+    theme(legend.text=element_text(size=8)) +
+    geom_segment(data = avgs, aes(x = ct1, y = ct2, xend = tt1, yend = tt2, color = TP53_WT),
+                  arrow = arrow(length = unit(0.2,"cm")), size = 0.7, alpha = 0.75) 
   g
-  ggsave(file.path(fig_dir, paste0(expt_name, '_', 'combined_tsne_CCP.png')), width = 4, height = 4)
+  ggsave(file.path(fig_dir, paste0(expt_name, '_', 'combined_tsne_CCP.png')), width = 4.2, height = 4.25)
 
 }
 

@@ -1,6 +1,6 @@
 #make tSNE plot comparing SNP and GE-based classification for a given experiment batch (neg-control data)
 make_SNP_GE_comparison_fig <- function(expt_batch) {
-  all_ref_lines <- read_csv(here('data', 'bulk_reference_CLs.csv'))
+  all_ref_lines <- read_csv(here::here('data', 'bulk_reference_CLs.csv'))
   source(here::here('src', 'global_params.R'))
   
   #PARAMS
@@ -17,16 +17,18 @@ make_SNP_GE_comparison_fig <- function(expt_batch) {
       load_from_taiga = TRUE
     )
     clust_res <- 1
+    dot_size <- 1
   } else if (expt_batch == 'expt3') {
     cur_expt <- list(
       data_sets = list(
-        DMSO_6hr = 'DMSO_6hr',
-        DMSO_24hr = 'DMSO_24hr'),
+        DMSO_6hr = 'DMSO_6hr_expt3',
+        DMSO_24hr = 'DMSO_24hr_expt3'),
       expt_batch = 'expt3',
       drug_name = NULL,
       load_from_taiga = TRUE
     )
     clust_res <- 4
+    dot_size <- 0.5
   }
   
   CCLE_GE <- load.from.taiga(data.name="depmap-rnaseq-expression-data-ccd0",
@@ -124,12 +126,13 @@ make_SNP_GE_comparison_fig <- function(expt_batch) {
   ggplot(full_df, aes(t1, t2)) +
     geom_point(data = full_df %>% filter(agree),
                aes(color = DEPMAP_ID), alpha = 0.75, size = 0.15) +
-    geom_point(data = full_df %>% filter(cell_quality == 'doublet'), color = 'black', alpha = 0.75, size = 1.) +
-    geom_point(data = full_df %>% filter(cell_quality == 'low_quality'), color = 'gray', alpha = 0.75, size = 1.) +
-    geom_point(data = full_df %>% filter(!agree, cell_quality == 'normal'), color = 'red', alpha = 0.75, size = 1.) +
+    geom_point(data = full_df %>% filter(cell_quality == 'doublet'), color = 'black', alpha = 0.75, size = dot_size) +
+    geom_point(data = full_df %>% filter(cell_quality == 'low_quality'), color = 'gray', alpha = 0.75, size = dot_size) +
+    geom_point(data = full_df %>% filter(!agree, cell_quality == 'normal'), color = 'red', alpha = 0.75, size = dot_size) +
     guides(color = F) +
     xlab('tSNE 1') + ylab('tSNE 2') +
-    ggtitle(sprintf('%.1f%% agreement', perc_correct*100))
+    # ggtitle(sprintf('%.1f%% agreement', perc_correct*100)) +
+    cdsr::theme_Publication()
   ggsave(file.path(fig_dir, sprintf('GE_SNP_agree_tSNE_%s.png', cur_expt$expt_batch)), width = 6, height = 5.5)
   
   results = list(perc_correct = perc_correct)

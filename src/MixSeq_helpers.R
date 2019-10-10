@@ -67,7 +67,8 @@ load_sc_data <- function(expt_params, sc_expts, min_cells_per_gene = 0, min_gene
       dat <- cdsc::load_sc_data_with_expt_string(expt_params$taiga_name, data.version = expt_params$taiga_version)
     } else {
       data_dir <- get_Gdrive_path(expt_params)
-      dat <- load_expt_data(file.path(data_dir, expt_params$expt_name))
+      cur_ename <- str_replace(expt_params$expt_name, '_expt[0-9]+$', '')
+      dat <- load_expt_data(file.path(data_dir, cur_ename))
     }
     dat$cell_info %<>% tibble::column_to_rownames(var = 'barcode')
   }

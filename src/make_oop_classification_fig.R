@@ -1,5 +1,5 @@
 make_oop_classification_fig <- function() {
-  all_ref_lines <- read_csv(here('data', 'bulk_reference_CLs.csv'))
+  all_ref_lines <- read_csv(here::here('data', 'bulk_reference_CLs.csv'))
   total_panel_size <- length(all_ref_lines$reference_cell_lines)
   
   used_expts <- names(sc_expts)[grepl('expt[1|3]$', names(sc_expts))]

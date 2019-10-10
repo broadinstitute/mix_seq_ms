@@ -7,7 +7,7 @@ make_CCchange_AUC_plot <- function() {
     # 'Trametinib_6hr_expt1',
     'Trametinib_24hr_expt3', 
     'Bortezomib_24hr_expt1',
-    # 'Navitoclax_24hr_expt3',
+    'Navitoclax_24hr_expt3',
     'Dabrafenib_24hr_expt3',
     'BRD3379_24hr_expt3',
     # 'BRD3379_6hr_expt3',
@@ -45,9 +45,15 @@ make_CCchange_AUC_plot <- function() {
       G2M_c <- cor.test(df$`G2/M`, df$sens)
       G1_c <- cor.test(df$`G0/G1`, df$sens)
       S_c <- cor.test(df$S, df$sens)
+      wtd_t_G1 <- weights::wtd.t.test(df$`G0/G1`, weight = df$weights)
+      wtd_t_G2M <- weights::wtd.t.test(df$`G2/M`, weight = df$weights)
+      wtd_t_S <- weights::wtd.t.test(df$`S`, weight = df$weights)
       data_frame(wmean_G2M = weighted.mean(df$`G2/M`[!is.na(df$weights)], w = df$weights[!is.na(df$weights)], na.rm=T),
                  wmean_S = weighted.mean(df$S[!is.na(df$weights)], w = df$weights[!is.na(df$weights)], na.rm=T),
                  wmean_G1 = weighted.mean(df$`G0/G1`[!is.na(df$weights)], w = df$weights[!is.na(df$weights)], na.rm=T),
+                 G1_t_pval = wtd_t_G1$coefficients['p.value'],
+                 G2M_t_pval = wtd_t_G2M$coefficients['p.value'],
+                 S_t_pval = wtd_t_S$coefficients['p.value'],
                  G2M_cor = G2M_c$estimate,
                  G2M_lci = G2M_c$conf.int[1],
                  G2M_uci = G2M_c$conf.int[2],
@@ -105,5 +111,40 @@ make_CCchange_AUC_plot <- function() {
     xlab('S-phase sensitivity corr.') +
     ylab('G2/M-phase sensitivity corr.')
   ggsave(file.path(fig_dir, 'G2M_S_sens_corrs.png'), width = 4, height = 3.5)
+
+  write_rds(aa, file.path(results_dir, 'CC_arrest_stats.rds'))
+
+  
+  library(pals)
+  library(plot3D)
+  aa %<>% mutate(drug = factor(drug))
+  color = pals::alphabet(nlevels(aa$drug)) %>% set_names(levels(aa$drug))
+  aa %<>% mutate(col = color[drug])
+  x <- aa$S_cor
+  y <- aa$G2M_cor
+  z <- aa$G1_cor
+  # Compute the linear regression (z = ax + by + d)
+  fit <- lm(z ~ x + y)
+  # predict values on regular xy grid
+  grid.lines = 8
+  x.pred <- seq(min(x), max(x), length.out = grid.lines)
+  y.pred <- seq(min(y), max(y), length.out = grid.lines)
+  xy <- expand.grid( x = x.pred, y = y.pred)
+  z.pred <- matrix(predict(fit, newdata = xy), 
+                   nrow = grid.lines, ncol = grid.lines)
+  # fitted points for droplines to surface
+  fitpoints <- predict(fit)
+  # dev.off()
+  png(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.png'), width = 4.5, height = 4.5, units = 'in', res = 300)
+  # scatter plot with regression plane
+  scatter3D(x, y, z, pch = 16, cex = 1.5, col = aa$col, colvar = NULL,
+            theta = 110, phi = 20, ticktype = "detailed",
+            xlab = "S cor.", ylab = "G2/M cor.", zlab = "G0/G1 cor.",
+            surf = list(x = x.pred, y = y.pred, z = z.pred,
+                        facets = NA, fit = fitpoints, lwd = 0.5, col = 'darkgray'),
+            bty = 'b2')
+  text3D(x+0.1,y+0.075,z, pch=10,labels=aa$drug, col = aa$col, add=TRUE, cex=0.75)
+  dev.off()
+  
 
 }

@@ -7,6 +7,7 @@ make_PC_AUC_compare_fig <- function() {
                     'Idasanutlin_24hr_expt1',
                     'Trametinib_24hr_expt3', 
                     'Dabrafenib_24hr_expt3',
+                    'Navitoclax_24hr_expt3', 
                     'BRD3379_6hr_expt3',
                     'BRD3379_24hr_expt3',
                     'Afatinib_expt10',
@@ -53,7 +54,10 @@ make_PC_AUC_compare_fig <- function() {
   PC_PRISM_cors %>% 
     dplyr::filter(PC == 'PC1') %>% 
     dplyr::mutate(q = p.adjust(sens_p, method = 'BH')) %>% 
-    dplyr::mutate(expt_name = factor(expt_name, levels = PC_PRISM_cors %>% distinct(expt_name, .keep_all=T) %>% arrange(desc(sens_rmag)) %>% .[['expt_name']])) %>% 
+    dplyr::mutate(expt_name = factor(expt_name, levels = PC_PRISM_cors %>% 
+                                       dplyr::distinct(expt_name, .keep_all=T) %>% 
+                                       dplyr::arrange(dplyr::desc(sens_rmag)) %>%
+                                       .[['expt_name']])) %>% 
     ggplot(aes(expt_name, sens_rmag)) + 
     geom_bar(aes(fill = q < 0.1), stat = 'identity') +
     cdsr::theme_Publication() +
@@ -62,6 +66,6 @@ make_PC_AUC_compare_fig <- function() {
     guides(fill = guide_legend(title = 'FDR < 0.1')) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           axis.title.x = element_blank())
-  ggsave(file.path(results_dir, 'figures', 'all_PC1_sens_corrs.png'), width = 4, height = 3.5)
+  ggsave(file.path(fig_dir, 'all_PC1_sens_corrs.png'), width = 4, height = 3.5)
 
 }
