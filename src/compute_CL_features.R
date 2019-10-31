@@ -63,10 +63,12 @@ get_drug_sensitivity_data <- function(drug_name) {
       dplyr::filter(!is.na(DEPMAP_ID)) %>% 
       as.data.frame()
   } else if (drug_name == 'azd5591') {
-    PRISM_AUC <- read_csv(here::here('data', 'MCL1_Inhibitors_MTS011/BRD-K00005264-001-01-9/DRC_table.csv')) %>% 
+    PRISM_AUC <- read_csv(here::here('data', 'MCL1_Inhibitors_Repurposing_MTS011/data/DRC_TABLE.csv')) %>%
+        # PRISM_AUC <- read_csv(here::here('data', 'MCL1_Inhibitors_MTS011/mcl1_uncapped.csv')) %>% 
+    #   dplyr::filter(pert_mfc_id == 'BRD-K00005264-001-01-9') %>% 
       dplyr::select(CCLE_ID = ccle_name,
                     PRISM_AUC = auc) %>% 
-      dplyr::mutate(DEPMAP_ID = celllinemapr::ccle.to.arxspan(CCLE_ID, ignore.problems = T)) %>% 
+      dplyr::mutate(DEPMAP_ID = celllinemapr::ccle.to.arxspan(CCLE_ID, ignore.problems = T, check.unique.mapping = F)) %>% 
       dplyr::filter(!is.na(DEPMAP_ID)) %>% 
       dplyr::select(DEPMAP_ID, PRISM_AUC) %>% 
       dplyr::group_by(DEPMAP_ID) %>% 
