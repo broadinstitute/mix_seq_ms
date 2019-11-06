@@ -51,9 +51,6 @@ make_viability_signature_heatmaps <- function() {
     'Gemcitabine_expt10',
     'Prexasertib_expt10',
     'Bortezomib_24hr_expt1',
-    # 'Navitoclax_24hr_expt3',
-    # 'AZD5591_expt10',
-    # 'Everolimus_expt10',
     'JQ1_expt10')
   
   #get per-gene stats 
@@ -102,7 +99,7 @@ make_viability_signature_heatmaps <- function() {
   hmap_sel <- Heatmap(mat_sel, col = col_fun, show_column_names = F, 
           width = unit(hmap_width, 'cm'),
           height = unit(height_per*length(used_expts_selective), 'cm'),
-          column_split = 3,
+          column_split = NULL,
           border = TRUE,
           row_title = 'Selective',
           column_title = 'Genes',

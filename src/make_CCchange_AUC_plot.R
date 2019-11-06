@@ -135,7 +135,8 @@ make_CCchange_AUC_plot <- function() {
   # fitted points for droplines to surface
   fitpoints <- predict(fit)
   # dev.off()
-  png(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.png'), width = 4.5, height = 4.5, units = 'in', res = 300)
+  # png(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.png'), width = 4.5, height = 4.5, units = 'in', res = 300)
+  pdf(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.pdf'), width = 4.5, height = 4.5)
   # scatter plot with regression plane
   scatter3D(x, y, z, pch = 16, cex = 1.5, col = aa$col, colvar = NULL,
             theta = 110, phi = 20, ticktype = "detailed",

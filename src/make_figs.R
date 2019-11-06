@@ -61,6 +61,9 @@ make_dabrafenib_heterogeneity_figs()
 source(here::here('src', 'run_CL_downsampling_analysis.R'))
 run_CL_downsampling_analysis(sc_DE_meta$trametinib_24hr_expt3)
 
+source(here::here('src', 'run_cell_downsampling_analysis.R'))
+run_cell_downsampling_analysis(sc_DE_meta$trametinib_24hr_expt3)
+
 
 #GLOBAL ANALYSES
 source(here::here('src', 'make_CCchange_AUC_plot.R'))

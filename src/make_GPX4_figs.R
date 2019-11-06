@@ -18,11 +18,11 @@ make_GPX4_figs <- function() {
     cbind(seuObj@meta.data) %>% 
     tidyr::separate('condition', into = c('treat_cond', 'batch'), sep = '_', remove = FALSE) %>% 
     dplyr::mutate(condition = revalue(condition, 
-                               c(control_1 = 'sgO2J2',
+                               c(control_1 = 'sgOR2J2',
                                  control_2 = 'sgLACZ',
                                  treat_1 = 'sgGPX4_1',
                                  treat_2 = 'sgGPX4_2')),
-           condition = factor(condition, levels = c('sgLACZ', 'sgO2J2', 'sgGPX4_1', 'sgGPX4_2')))
+           condition = factor(condition, levels = c('sgLACZ', 'sgOR2J2', 'sgGPX4_1', 'sgGPX4_2')))
   
   #plot GP4 expression per guide for example cell line
   targ_CL <- 'YD38_UPPER_AERODIGESTIVE_TRACT'
@@ -30,7 +30,7 @@ make_GPX4_figs <- function() {
     dplyr::filter(singlet_ID == targ_CL) %>% 
     ggplot(aes(condition, GPX4)) + 
     geom_violin(aes(fill = condition), alpha = 0.5) +
-    ggbeeswarm::geom_beeswarm(size = 0.75, alpha = 0.75) +
+    ggbeeswarm::geom_beeswarm(size = 0.1, alpha = 0.6) +
     guides(fill = FALSE) + 
     cdsr::theme_Publication() +
     ylab('GPX4 expression (log2CPM)') +

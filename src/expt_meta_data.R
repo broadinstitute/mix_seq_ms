@@ -69,12 +69,12 @@ sc_expts <- list(
       taiga_version = 3,
       expt_batch = 'expt3'
     ),
-    Everolimus_6hr_expt3 = list(
-      expt_name = 'Everolimus_6hr_expt3',
-      taiga_name = 'everolimus_6hr_expt3',
-      taiga_version = 3,
-      expt_batch = 'expt3'
-    ),
+    # Everolimus_6hr_expt3 = list(
+    #   expt_name = 'Everolimus_6hr_expt3',
+    #   taiga_name = 'everolimus_6hr_expt3',
+    #   taiga_version = 3,
+    #   expt_batch = 'expt3'
+    # ),
     Dabrafenib_24hr_expt3 = list(
       expt_name = 'Dabrafenib_24hr_expt3',
       taiga_name = 'dabrafenib_24hr_expt3',
@@ -174,61 +174,61 @@ sc_expts <- list(
   DMSO_expt10 = list(
     expt_name = 'DMSO_expt10',
     taiga_name = 'dmso_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   Everolimus_expt10 = list(
     expt_name = 'Everolimus_expt10',
     taiga_name = 'everolimus_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   Afatinib_expt10 = list(
     expt_name = 'Afatinib_expt10',
     taiga_name = 'afatinib_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   Taselisib_expt10 = list(
     expt_name = 'Taselisib_expt10',
     taiga_name = 'taselisib_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   AZD5591_expt10 = list(
     expt_name = 'AZD5591_expt10',
     taiga_name = 'azd5591_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   JQ1_expt10 = list(
     expt_name = 'JQ1_expt10',
     taiga_name = 'jq1_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   # THZ21021_expt10 = list(
   #   expt_name = 'THZ21021_expt10',
   #   taiga_name = 'thz21021_expt10',
-  #   taiga_version = 2,
+  #   taiga_version = 5,
   #   expt_batch = 'expt10'
   # ),
   Gemcitabine_expt10 = list(
     expt_name = 'Gemcitabine_expt10',
     taiga_name = 'gemcitabine_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   Trametinib_expt10 = list(
     expt_name = 'Trametinib_expt10',
     taiga_name = 'trametinib_expt10',
-    taiga_version = 2,
+    taiga_version = 5,
     expt_batch = 'expt10'
   ),
   Prexasertib_expt10 = list(
     expt_name = 'Prexasertib_expt10',
     taiga_name = 'prexasertib_expt10',
-    taiga_version = 2,
+    taiga_version = 6,
     expt_batch = 'expt10'
   )
 

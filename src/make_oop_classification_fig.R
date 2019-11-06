@@ -1,6 +1,6 @@
 make_oop_classification_fig <- function() {
   all_ref_lines <- read_csv(here::here('data', 'bulk_reference_CLs.csv'))
-  total_panel_size <- length(all_ref_lines$reference_cell_lines)
+  total_panel_size <- nrow(all_ref_lines)
   
   used_expts <- names(sc_expts)[grepl('expt[1|3]$', names(sc_expts))]
   res <- ldply(sc_expts[used_expts], function(cur_expt) {
@@ -14,19 +14,19 @@ make_oop_classification_fig <- function() {
       mutate(expt = cur_expt$expt_name)
   })
   
-  #remove errors due to isogenic pairs
-  isogenic_pairs <- list(c('SW480_LARGE_INTESTINE', 'SW620_LARGE_INTESTINE'),
-                         c('FTC133_THYROID', 'FTC238_THYROID'),
-                         # c('HEC1A_ENDOMETRIUM', 'HEC1B_ENDOMETRIUM'),
-                         c('PATU8988S_PANCREAS', 'PATU8988T_PANCREAS'))
-  to_remove <- c()
-  for (cur_pair in isogenic_pairs) {
-    cur_iso_inds <- c(which(res$singlet_ID == cur_pair[[1]] & res$oop_class == cur_pair[[2]]),
-                      which(res$singlet_ID == cur_pair[[2]] & res$oop_class == cur_pair[[1]]))
-    to_remove %<>% c(cur_iso_inds)  
-  }
-  sprintf('%d/%d isogenic pair errors removed', length(to_remove), nrow(res))
-  res <- res[-to_remove,]
+  # #remove errors due to isogenic pairs
+  # isogenic_pairs <- list(c('SW480_LARGE_INTESTINE', 'SW620_LARGE_INTESTINE'),
+  #                        c('FTC133_THYROID', 'FTC238_THYROID'),
+  #                        # c('HEC1A_ENDOMETRIUM', 'HEC1B_ENDOMETRIUM'),
+  #                        c('PATU8988S_PANCREAS', 'PATU8988T_PANCREAS'))
+  # to_remove <- c()
+  # for (cur_pair in isogenic_pairs) {
+  #   cur_iso_inds <- c(which(res$singlet_ID == cur_pair[[1]] & res$oop_class == cur_pair[[2]]),
+  #                     which(res$singlet_ID == cur_pair[[2]] & res$oop_class == cur_pair[[1]]))
+  #   to_remove %<>% c(cur_iso_inds)  
+  # }
+  # sprintf('%d/%d isogenic pair errors removed', length(to_remove), nrow(res))
+  # res <- res[-to_remove,]
   
   #estimate error rates, apply correction
   st <- ddply(res, .(expt), function(df) {

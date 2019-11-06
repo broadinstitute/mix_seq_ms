@@ -19,13 +19,14 @@ print(res$perc_correct)
 
 source(here::here('src', 'make_oop_classification_fig.R'))
 res <- make_oop_classification_fig()
-print(results)
+print(res)
 
 source(here::here('src', 'make_cell_dist_fig.R'))
 make_cell_dist_fig()
 
 source(here::here('src', 'make_demux_SNP_comparison_fig.R'))
 res <- make_demux_SNP_comparison_fig()
+print(res)
 
 source(here::here('src', 'make_cell_quality_example_fig.R'))
 make_cell_quality_example_fig(sc_expts$DMSO_6hr_expt1)

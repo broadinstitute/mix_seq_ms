@@ -16,6 +16,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
                              s.features = Seurat::cc.genes$s.genes,
                              g2m.features = Seurat::cc.genes$g2m.genes,
                              set.ident = FALSE)
+  seuObj <- relabel_cell_cycle_phase(seuObj)
   
   make_subpop_plots <- function(cur_CL) {
     si <- FetchData(seuObj, vars = 'singlet_ID')
@@ -60,7 +61,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
       dplyr::mutate(cluster = plyr::revalue(cluster, replace = c(`0` = 1, `1` = 2)),
              class = ifelse(is.na(cluster), 'DMSO', paste0('bortezomib_', cluster)),
              class = factor(class, levels = c('DMSO', 'bortezomib_1', 'bortezomib_2')),
-             Phase = factor(Phase, levels = c('G1', 'S', 'G2M')))
+             Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
     
     stopifnot(nlevels(treatSub) == 2) #assumes that there are two clusters in the treated population
     
@@ -68,7 +69,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     clust_phase <- df %>% 
       dplyr::filter(!is.na(cluster)) %>% 
       dplyr::group_by(cluster) %>% 
-      dplyr::mutate(is_G1 = Phase == 'G1') %>% 
+      dplyr::mutate(is_G1 = Phase == 'G0/G1') %>% 
       dplyr::summarise(avg_G1 = mean(is_G1))
     if (clust_phase %>% dplyr::arrange(dplyr::desc(avg_G1)) %>% head(1) %>% .[['cluster']] == 2) {
       df %<>% dplyr::mutate(cluster = plyr::revalue(cluster, replace = c(`1` = 2, `2` = 1)))
@@ -78,7 +79,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     xr <- with(df %>% filter(cell_quality == 'normal'), range(df$t1))
     yr <- with(df %>% filter(cell_quality == 'normal'), range(df$t2))
     avgs <- df %>% 
-      dplyr::filter(cell_quality == 'normal', condition == 'Bort. 24hr') %>% 
+      dplyr::filter(condition == 'Bort. 24hr') %>% 
       dplyr::group_by(cluster) %>% 
       dplyr::summarise(t1 = median(t1), t2 = median(t2)) %>% 
       dplyr::mutate(cluster_label = paste0('cluster ', cluster))
@@ -89,23 +90,27 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
       guides(alpha = F, size = F) +
       xlab(paste0(d_use, ' 1')) + ylab(paste0(d_use, ' 2')) +
       scale_fill_manual(values = c(`DMSO` = 'darkgray',
-                                    `Bort. 6hr` = 'red',
-                                    `Bort. 24hr` = 'darkred')) +
+                                    `Bort. 24hr` = 'indianred4')) +
       geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_label), size = 8) +
       cdsr::theme_Publication()
     
     g_phase <- ggplot(df %>% filter(cell_quality == 'normal'),
                       aes(t1, t2)) +
-      geom_point(aes(fill = Phase), pch = 21, color = 'white', stroke = 0.2, size = 2.5) +
-      ylim(yr) + xlim(xr) +
-      guides(alpha = F, size = F) +
+      geom_point(aes(stroke = condition, fill = Phase, color = condition), pch = 21, size = 2.5, alpha = 0.75) +
+      guides(alpha = F, stroke = F,
+             fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size =3)), 
+             color = guide_legend(nrow = 2, override.aes = list(stroke = 1, size = 3),
+                                  title = element_blank())) +
+      scale_color_manual(values = c('darkgray', 'indianred4')) +
+      scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 1)) +
       xlab(paste0(d_use, ' 1')) + ylab(paste0(d_use, ' 2')) +
+      geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_label), size = 8) +
+      coord_cartesian(xlim = xr, ylim = yr, clip = 'off') +
       cdsr::scale_fill_Publication() +
       cdsr::theme_Publication()
     
-    cowplot::plot_grid(g, g_phase)
-    
-    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop_full.png', cur_CL)), width = 10, height = 5)
+
+    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop_phase.png', cur_CL)), width = 3.5, height = 4)
     ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop.png', cur_CL)), plot = g, width = 4, height = 4)
     
     

@@ -5,7 +5,7 @@ make_global_dimred <- function() {
   min_cells_per_cond <- 5
   min_tot_cells <- 40
   min_per_cond <- 10
-  npcs <- 30
+  npcs <- 25
   sens_clims <- c(0, 0.5)
   metric <- 'cosine'
   umap_nneighbors <- 15
@@ -122,7 +122,7 @@ make_global_dimred <- function() {
             Trametinib_6hr = '#00BFC4')
   stopifnot(all(df$drug_time %in% names(cols)))
   
-  zoom_x <- c(2.5, 7.5); zoom_y <- c(1, 8)
+  zoom_x <- c(1.5, 7); zoom_y <- c(-5, 3)
   
   #Make overall plot colored by treatment
   g <- df %>% 
@@ -131,7 +131,7 @@ make_global_dimred <- function() {
     guides(fill = F, color = F) +
     scale_fill_manual(values = cols) +
     scale_color_manual(values = cols) + 
-    geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
+    geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.5, label.padding = 0.1) +
     cdsr::theme_Publication() +
     geom_rect(xmin = zoom_x[1], xmax = zoom_x[2], ymin = zoom_y[1], ymax = zoom_y[2], 
               fill = NA, color = 'black', lwd = 0.2)
@@ -157,8 +157,9 @@ make_global_dimred <- function() {
     guides(fill = F, color = F) +
     scale_color_manual(values = cols) +
     scale_fill_manual(values = cols) +
-    geom_text(data = avgs_z, aes(label = drug_time, color = drug_time), size = 3.5) +
+    geom_text(data = avgs_z, aes(label = drug_time, color = drug_time), size = 4) +
     cdsr::theme_Publication()  +
+    theme_void() +
     theme(axis.title.x = element_blank(), axis.title.y = element_blank(),
           axis.text.x = element_blank(), axis.text.y = element_blank()) +
     # geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
@@ -170,10 +171,11 @@ make_global_dimred <- function() {
     ggplot(aes(UMAP_1, UMAP_2)) + 
     geom_point(aes(fill = sens, text = sprintf('%s\n%s\n%.3f', drug_time, CCLE_ID, sens)), color = 'white', stroke = 0.1, pch = 21, size = 1.8) +
     guides(color = F, fill = guide_colorbar(title = 'sensitivity')) +
-    geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
+    # geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
     cdsr::theme_Publication()  +
+    theme(legend.key.width = unit(1.25, 'cm')) +
     scale_color_manual(values = cols) +
-    scale_fill_gradient(limits = sens_clims, oob = scales::squish) +
+    scale_fill_gradient(limits = sens_clims, oob = scales::squish) 
   ggsave(file.path(fig_dir, 'full_LFC_umap_sens.png'), plot = g, width = 4, height = 4)
 
 }

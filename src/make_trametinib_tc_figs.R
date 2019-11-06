@@ -9,6 +9,10 @@ make_trametinib_tc_figs <- function() {
   min_det_samps_per_gene <- 5
   n_top_genes = 50 #number of top genes per category to avg for making avg relative time course plot
   
+  #umap params
+  umap_n_neighbors <- 15
+  umap_min_dist <- 0.6
+  
   #for heatmap plots
   n_int_genes <- 10 
   n_slope_genes <- 10
@@ -103,13 +107,18 @@ make_trametinib_tc_figs <- function() {
                    verbose = FALSE)
   
   #make TSNE figure
-  seuObj <- RunTSNE(object = seuObj, 
+  # seuObj <- RunTSNE(object = seuObj, 
+  #                   dims = 1:n_PCs, 
+  #                   check_duplicates = FALSE, 
+  #                   seed.use = 1, 
+  #                   perplexity = globals$tsne_perplexity)
+  seuObj <- RunUMAP(object = seuObj, 
                     dims = 1:n_PCs, 
-                    check_duplicates = FALSE, 
                     seed.use = 1, 
-                    perplexity = globals$tsne_perplexity)
+                    n.neighbors = umap_n_neighbors, 
+                    min.dist = umap_min_dist)
   
-  df <- Embeddings(object = seuObj, reduction = 'tsne') %>% 
+  df <- Embeddings(object = seuObj, reduction = 'umap') %>% 
     as.data.frame() %>% 
     set_colnames(c('t1', 't2')) %>% 
     rownames_to_column(var = 'barcode') %>% 
@@ -126,7 +135,7 @@ make_trametinib_tc_figs <- function() {
     dplyr::summarise(ct1 = median(t1, na.rm=T),
                      ct2 = median(t2, na.rm=T))
   
-  y_offset = 5 #add slight shift to cell line name y-locs
+  y_offset = 0.2 #add slight shift to cell line name y-locs
   avgs %<>% dplyr::mutate(short_name = str_match(singlet_ID, '^([:alnum:]+)_')[,2],
                    ct2 = ct2 + y_offset)
   ggplot(df, aes(t1, t2)) + 
@@ -135,8 +144,8 @@ make_trametinib_tc_figs <- function() {
     scale_fill_brewer(palette = 1, type = 'seq') +
     geom_text(data = avgs, mapping = aes(x = ct1, y = ct2, label = short_name), fontface = 'bold', color = 'black', size = 2.) + 
     cdsr::theme_Publication() + 
-    xlab('tSNE 1') +
-    ylab('tSNE 2') +
+    xlab('UMAP 1') +
+    ylab('UMAP 2') +
     guides(fill = guide_legend(override.aes = list(size = 3)))
   ggsave(file.path(fig_dir, 'trametinib_tc_fulltsne.png'),
          width = 4.5, height = 4)
