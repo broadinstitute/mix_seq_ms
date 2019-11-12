@@ -88,7 +88,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
   ggplot(res_avg, aes(size, avg_avgC)) + 
     geom_point() + 
     geom_line() +
-    geom_errorbar(aes(ymax = avg_avgC + se_avgC, ymin = avg_avgC - se_avgC)) +
+    geom_errorbar(data = res_avg %>% filter(!is.na(se_avgC)),
+                  aes(ymax = avg_avgC + se_avgC, ymin = avg_avgC - se_avgC)) +
     ggtitle('Avg. response') +
     ylab('Correlation with full profile') +
     xlab('Num. cell lines') +
@@ -101,7 +102,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
   ggplot(res_avg, aes(size, avg_intC)) + 
     geom_point() + 
     geom_line() +
-    geom_errorbar(aes(ymax = avg_intC + se_intC, ymin = avg_intC - se_intC)) +
+    geom_errorbar(data = res_avg %>% filter(!is.na(se_intC)),
+                  aes(ymax = avg_intC + se_intC, ymin = avg_intC - se_intC)) +
     ggtitle('Viability-independent') +
     ylab('Correlation with full profile') +
     xlab('Num. cell lines') +
@@ -115,7 +117,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
   ggplot(res_avg, aes(size, avg_slopeC)) + 
     geom_point() + 
     geom_line() +
-    geom_errorbar(aes(ymax = avg_slopeC + se_slopeC, ymin = avg_slopeC - se_slopeC)) +
+    geom_errorbar(data = res_avg %>% filter(!is.na(se_slopeC)),
+                  aes(ymax = avg_slopeC + se_slopeC, ymin = avg_slopeC - se_slopeC)) +
     ggtitle('Viability-related') +
     ylab('Correlation with full profile') +
     xlab('Num. cell lines')+

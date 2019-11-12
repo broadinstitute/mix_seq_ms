@@ -115,12 +115,17 @@ make_GPX4_figs <- function() {
   res %>% 
     dplyr::mutate(is_sig = adj.P.Val < globals$q_thresh) %>% 
     ggplot(aes(logFC, -log10(P.Value))) +
-    geom_point(color = 'black', size = 1, alpha = 0.5) +
+    geom_point(fill = 'black', color = 'white', stroke = 0.1, pch = 21, size = 2, alpha = 0.75) +
     geom_point(data = . %>% filter(Gene == 'GPX4'), color = 'red', size = 2, alpha = 1) +
     geom_label_repel(data = . %>% 
                        dplyr::arrange(dplyr::desc(abs(logFC))) %>% 
                        head(n_label),
                      aes(label = Gene),
+                     size = 2.5) +
+    geom_label_repel(data = . %>% 
+                       dplyr::filter(Gene == 'GPX4'),
+                     aes(label = Gene),
+                     color = 'red',
                      size = 2.5) +
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     cdsr::theme_Publication() 

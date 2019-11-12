@@ -63,7 +63,7 @@ make_hash_tag_qc_figs <- function() {
   #apply CLR transform to hash tag data
   CLR <- function(x) {
     x <- x + 1
-    log(x / (exp(sum(log(x[x > 0]), na.rm=TRUE) / length(x))))
+    log(x / (exp(sum(log(x), na.rm=TRUE) / length(x))))
   }
   hash_norm <- apply(hash_df %>% column_to_rownames(var = 'barcode'),
                      1, CLR) %>% t()
