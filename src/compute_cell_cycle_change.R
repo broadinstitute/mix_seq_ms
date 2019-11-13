@@ -9,6 +9,7 @@ source(here::here('src', 'global_params.R'))
 
 results_dir <- here::here('data')
 
+#compute estimates of the change in fraction of cells in each cell cycle phase, as well as change in median cell cycle phase scores (comparing treat vs control groups)
 compute_cell_cycle_change <- function(cur_expt) {
   sprintf('Processing expt %s', cur_expt$expt_name)
   out_dir <- file.path(results_dir, cur_expt$expt_name)

@@ -7,6 +7,8 @@ library(taigr)
 
 
 ###------------------------- DATA IO -----------------------------------
+
+# helper function that gets appropriate path for data when stored on Google Drive
 get_Gdrive_path <- function(expt_params) {
   if (dir.exists("~/google_drive/Project Apollo/")) {
     gdrive_path <- "~/google_drive/Project Apollo/"
@@ -275,15 +277,6 @@ load_compute_CPM_stats <- function(expt_info, results_dir, type = 'sum', prior_c
   LFC_mat <- treat_CPM - control_CPM
   return(list(LFC_mat = LFC_mat, control_CPM = control_CPM, treat_CPM = treat_CPM))
 }
-
-
-
-# #load cancerSEA gene signatures 
-# get_cancerSEA_gene_sets <- function(data_dir = '~/CPDS/ApolloSeq/data/CancerSEA') {
-#   files <- list.files(path = data_dir, pattern = '*.txt')
-#   plyr::llply(files, function(x) {read_tsv(file.path(data_dir, x), col_types = cols())$GeneName}) %>% 
-#     set_names(str_match(files, 'CancerSEA_([:alnum:]+)\\.txt')[,2])
-# }
 
 
 ###------------------------- DATA MANIPULATION -----------------------------------
@@ -652,39 +645,6 @@ compare_CL_responses <- function(seuDat, CL1, CL2, min_frac_cells_det = 0.05, pr
 }
 
 
-#' #' Title: Add Seurat module scores for set of signatures in cancerSEA database
-#' #'
-#' #' @param seuDat 
-#' #'
-#' #' @return
-#' #' @export
-#' #'
-#' #' @examples
-#' add_cancerSEA_scores <- function(seuDat) {
-#'   cancerSEA <- get_cancerSEA_gene_sets()
-#'   seuDat <- Seurat::AddModuleScore(seuDat, features = cancerSEA, name = 'cancerSEA')
-#'   cur_colnames <- colnames(seuDat@meta.data)
-#'   name_map <- paste0('cancerSEA_', names(cancerSEA)) %>% 
-#'     set_names(grep('cancerSEA', cur_colnames, value = TRUE))
-#'   colnames(seuDat@meta.data) %<>% plyr::revalue(name_map)
-#'   return(seuDat) 
-#' }
-#' 
-#' normalize_SEA_scores <- function(seuDat) {
-#'   sea_cols <- grep('cancerSEA', colnames(seuDat@meta.data), value=T)
-#'   cur_CLs <- levels(seuDat)
-#'   for (cur_CL in cur_CLs) {
-#'     wc <- which(seuDat@meta.data$singlet_ID == cur_CL)
-#'     cent <- apply(seuDat@meta.data[wc, ] %>% 
-#'                     filter(grepl('control', condition)) %>% 
-#'                     .[, sea_cols], 2, median, na.rm=T)
-#'     sc <- apply(seuDat@meta.data[wc, ] %>% 
-#'                   filter(grepl('control', condition)) %>% 
-#'                   .[, sea_cols], 2, mad, na.rm=T)
-#'     seuDat@meta.data[wc, sea_cols] %<>% scale(center = cent, scale = sc)
-#'   }
-#'   return(seuDat)
-#' }
 
 
 ###------------------------- PLOTTING -----------------------------------
@@ -881,94 +841,6 @@ make_stem_plot_precom <- function(cur_up_GSEA, cur_down_GSEA, n_lab_per = 10, la
 }
 
 
-#' #' Title
-#' #'
-#' #' @param gene_stat 
-#' #' @param gsc 
-#' #' @param gseaParam 
-#' #' @param nperm 
-#' #' @param n_top 
-#' #'
-#' #' @return
-#' #' @export
-#' #'
-#' #' @examples
-#' make_fGSEA_stem_plot <- function(gene_stat, gsc, gseaParam = 2, nperm = 1e5, n_top = 10) {
-#'   library(cowplot)
-#'   res <- cdsr::run_fGSEA(gsc, gene_stat = gene_stat, perm_type = 'gene', 
-#'                          gseaParam = gseaParam, nperm = nperm)
-#'   res %<>% mutate(gs_id = pathway, pathway = str_replace_all(pathway, '^REACTOME_|^PID_|^KEGG_|^HALLMARK_', ''))
-#'  
-#'   col <- 'red'
-#'   top_up <- res %>% 
-#'     filter(NES > 0) %>% 
-#'     arrange(desc(NES)) %>% 
-#'     head(n_top) %>% 
-#'     arrange(NES) %>% 
-#'     mutate(gs_id = factor(gs_id, levels = .[['gs_id']]))
-#'   #add in points at 0 for stems
-#'   top_up <- rbind(top_up, top_up %>% mutate(NES = 0))
-#'   
-#'   top_down <- res %>% 
-#'     filter(NES < 0) %>% 
-#'     arrange((NES)) %>% 
-#'     head(n_top) %>% 
-#'     arrange(desc(NES)) %>% 
-#'     mutate(gs_id = factor(gs_id, levels = .[['gs_id']]))
-#'   #add in points at 0 for stems
-#'   top_down <- rbind(top_down, top_down %>% mutate(NES = 0))
-#'   
-#'   comb <- rbind(top_up, top_down)
-#'   minp <- min(-log10(comb$pval))
-#'   maxp <- max(-log10(comb$pval))
-#'   
-#'   NES_max <- max(abs(comb$NES))
-#'   
-#'   g_up <- ggplot(top_up, 
-#'               aes(gs_id, NES)) + 
-#'     geom_point(data = top_up %>% filter(NES != 0), aes(size = -log10(pval)), alpha = 0.75, color = col) + 
-#'     geom_line(aes(group = gs_id), color = col) +
-#'     geom_text(data = top_up %>% filter(NES == 0), 
-#'               aes(label = pathway), 
-#'               angle = 0, vjust = -0.5, hjust = 0, nudge_y = -0., size = 3) +
-#'     # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-#'     cdsr::theme_Publication() + 
-#'     ylab('NES') +
-#'     xlab('gene set') +
-#'     ylim(0, NES_max) +
-#'     theme(axis.text.y = element_blank(),
-#'           axis.ticks.y = element_blank()) +
-#'     coord_flip() +
-#'     scale_size_continuous(limits = c(minp, maxp)) +
-#'     # ggtitle('Up-regulated') +
-#'     guides(size = guide_legend(override.aes = list(color = 'black')))
-#'   
-#'   col <- 'blue'
-#'   g_down <- ggplot(top_down, 
-#'               aes(gs_id, NES)) + 
-#'     geom_point(data = top_down %>% filter(NES != 0), aes(size = -log10(pval)), alpha = 0.75, color = col) + 
-#'     geom_line(aes(group = gs_id), color = col) +
-#'     geom_text(data = top_down %>% filter(NES == 0), 
-#'               aes(label = pathway), 
-#'               angle = 0, vjust = -0.5, hjust = 1, nudge_y = -0., size = 3) +
-#'     # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-#'     cdsr::theme_Publication() + 
-#'     ylab('NES') +
-#'     ylim(-NES_max, 0) +
-#'     xlab('gene set') +
-#'     theme(axis.text.y = element_blank(),
-#'           axis.ticks.y = element_blank()) +
-#'     coord_flip() +
-#'     scale_size_continuous(limits = c(minp, maxp)) 
-#'     # ggtitle('Down-regulated')
-#'   legend <- get_legend(g_up)
-#'   prow <- cowplot::plot_grid(g_down + theme(legend.position="none"),
-#'                      g_up + theme(legend.position="none"))
-#'   c <- cowplot::plot_grid(prow, legend, rel_heights = c(.95, .05), nrow = 2)
-#'   return(list(dat = comb, plot = c))
-#' }
-
-
 #' Title Wrapper around pheatmap function
 #'
 #' @param LFC_mat 
@@ -1059,39 +931,4 @@ make_LFC_heatmap <- function(LFC_mat,
 
 
 
-
-
-# make_apop_vln_plot <- function(cur_CL) {
-#   cur_df <- df %>% filter(singlet_ID == cur_CL)
-#   g1 <- ggplot(cur_df,
-#                aes(Phase, cancerSEA_apoptosis, fill = condition)) +
-#     # geom_violin(position = position_dodge(width = 0.75)) +
-#     ggbeeswarm::geom_quasirandom(dodge.width = 0.75, size = 1.5, cex = 1.25, pch = 21, color = 'white', stroke = 0.2) +
-#     geom_boxplot(position = position_dodge(width = 0.75), width = 0.2, alpha = 0.3) +
-#     ggtitle(cur_CL) +
-#     guides(color = F, fill = F) +
-#     cdsr::theme_Publication() +
-#     ylab('Apoptosis signature\n(z-score)') +
-#     xlab('Cell cycle phase') +
-#     scale_fill_manual(values = c('gray', 'darkred')) +
-#     theme(axis.title.x = element_blank())
-#   
-#   st <- cur_df %>% 
-#     group_by(Phase, condition) %>% 
-#     summarise(n_cells = n()) %>%
-#     left_join(cur_df %>% group_by(condition) %>% summarise(tot = n())) %>% 
-#     mutate(rel_frac = n_cells / tot) %>% 
-#     ungroup() %>%
-#     tidyr::complete(Phase, condition,
-#                     fill = list(N = 0, freq = 0))
-#   g2 <- ggplot(st, aes(Phase, rel_frac, fill = condition)) +
-#     geom_bar(stat = 'identity', position = position_dodge(width = 0.75), width = 0.5) +
-#     guides(fill = F) +
-#     ylab('Proportion') +
-#     xlab('Cell cycle phase') +
-#     cdsr::theme_Publication() +
-#     scale_fill_manual(values = c('darkgray', 'darkred'))
-#   
-#   cowplot::plot_grid(g1, g2, nrow = 2, rel_heights = c(2, 1))
-# }
 

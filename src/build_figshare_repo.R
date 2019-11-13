@@ -17,6 +17,7 @@ write_rds(all_CL_features, file.path(out_dir, 'all_CL_features.rds'))
 for (cur_expt in sc_expts) {
   print(paste0('Processing ', cur_expt$expt_name))
   cur_dir <- file.path(out_dir, cur_expt$expt_name)
+  cur_dir <- str_replace(cur_dir, 'expt10', 'expt4') #rename 10 to 4 for consistency with table S2
   if (!dir.exists(cur_dir)) {
     dir.create(cur_dir)
   }
