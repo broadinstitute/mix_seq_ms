@@ -1,5 +1,6 @@
 # Params
 globals <- list(
+  local_data = FALSE, #set to TRUE when loading data from local data directory (rather than Taiga data server)
   scale_fac = 1e5,
   n_highvar_genes = 5000, #number of high-var genes to use for PCA/clustering
   nn_cluster_k = 10, #nearest-neighbor param for clustering

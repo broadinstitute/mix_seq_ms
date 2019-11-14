@@ -2,9 +2,11 @@ library(magrittr)
 library(tidyverse)
 library(taigr)
 library(here)
-source(here::here('src', 'MixSeq_helpers.R'))
+
 source(here::here('src', 'expt_meta_data.R'))
 source(here::here('src', 'global_params.R'))
+source(here::here('src', 'MixSeq_helpers.R'))
+
 results_dir <- here::here('data')
 
 all_CL_features <- read_rds(file.path(results_dir, 'all_CL_features.rds'))

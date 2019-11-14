@@ -8,69 +8,38 @@ library(taigr)
 
 ###------------------------- DATA IO -----------------------------------
 
-# helper function that gets appropriate path for data when stored on Google Drive
-get_Gdrive_path <- function(expt_params) {
-  if (dir.exists("~/google_drive/Project Apollo/")) {
-    gdrive_path <- "~/google_drive/Project Apollo/"
-  } else if (dir.exists('/Volumes/GoogleDrive/My Drive/Project Apollo')) {
-    gdrive_path <- '/Volumes/GoogleDrive/My Drive/Project Apollo'
-  } else {
-    stop('Need to add Gdrive path')
-  }
-  
-  if (expt_params$expt_batch == 'expt3') {
-    data_dir <- paste0(gdrive_path, '/Apollo drugs /scRNAseq_003_004')
-  } else if (expt_params$expt_batch == 'expt2') {
-    data_dir <- paste0(gdrive_path, '/Apollo genetics/Apollo_scRNAseq_002')
-  } else if (expt_params$expt_batch == 'expt1') {
-    data_dir <- paste0(gdrive_path, '/Apollo drugs /scRNAseq Pilot 001')
-  } else if (expt_params$expt_batch == 'expt5') {
-    data_dir <-paste0(gdrive_path, '/Apollo drugs /scRNAseq_005')
-  } else if(expt_params$expt_batch == 'expt6') {
-    data_dir <- paste0(gdrive_path, '/Apollo genetics/Apollo_scRNAseq_006')
-  } else if(expt_params$expt_batch == 'expt9') {
-    data_dir <- paste0(gdrive_path, '/Prensner')
-  } else if (expt_params$expt_batch == 'expt10') {
-    data_dir <- paste0(gdrive_path,  '/Apollo drugs /scRNAseq_010')
-  } else if(expt_params$expt_batch == 'expt11') {
-    data_dir <- paste0(gdrive_path,  '/Apollo genetics/Apollo_scRNAseq_011')
-  }
-  return(data_dir)
-}
-
-#' Title
+#' load specified single-cell dataset into seurat object
 #'
 #' @param expt_params: list of parameters defining the desired dataset  
 #' @param min_cells_per_gene: optional minimum number of detected genes per cell 
 #' @param min_genes_per_cell: optional minimum number of cells where a gene is detected 
 #' @param QC_filter: use only cells called 'normal' (not doublet or low quality) 
+#' @param local: force loading data from local data directory (default FALSE)
 #'
 #' @return: Seurat object with dataset
 #' @export
 #'
 #' @examples
-load_sc_data <- function(expt_params, sc_expts, min_cells_per_gene = 0, min_genes_per_cell = 0, QC_filter = TRUE) {
+load_sc_data <- function(expt_params, sc_expts, min_cells_per_gene = 0, min_genes_per_cell = 0, QC_filter = TRUE, local = globals$local_data) {
   if ('data_sets' %in% names(expt_params)) {
     #if loading a list of datasets
-    if (expt_params$load_from_taiga) {
+    if (expt_params$load_from_taiga & !local) {
       data_sets <- lapply(expt_params$data_sets, function(dset) {
         cdsc::load_sc_data_with_expt_string(sc_expts[[dset]]$taiga_name, data.version = sc_expts[[dset]]$taiga_version)
       })
     } else {
-      data_dir <- get_Gdrive_path(expt_params)
+      data_dir <- here::here('data')
       data_sets <- lapply(expt_params$data_sets, function(dset) {
-        cur_folder <- str_replace(dset, '_expt[0-9]+$', '')
-        load_expt_data(file.path(data_dir, cur_folder))
+        load_expt_data(file.path(data_dir, dset))
       })
     }
     dat <- merge_sc_data(data_sets)
   } else {
-    if (!is.null(expt_params$taiga_name)) {
+    if (!is.null(expt_params$taiga_name) & !local) {
       dat <- cdsc::load_sc_data_with_expt_string(expt_params$taiga_name, data.version = expt_params$taiga_version)
     } else {
-      data_dir <- get_Gdrive_path(expt_params)
-      cur_ename <- str_replace(expt_params$expt_name, '_expt[0-9]+$', '')
-      dat <- load_expt_data(file.path(data_dir, cur_ename))
+      data_dir <- here::here('data')
+      dat <- load_expt_data(file.path(data_dir, expt_params$expt_name))
     }
     dat$cell_info %<>% tibble::column_to_rownames(var = 'barcode')
   }
@@ -102,8 +71,7 @@ load_sc_data <- function(expt_params, sc_expts, min_cells_per_gene = 0, min_gene
 }
 
 
-#' Load counts data and associtaed cell stats for an experiment
-#'
+#' Load counts data and associated cell stats for an experiment
 #'
 #' @param expt_dir: Full path to the experiment directory 
 #'
@@ -115,10 +83,10 @@ load_expt_data <- function(expt_dir) {
   library(readr)
   #Load single-cell counts matrix
   rMat <- Matrix::readMM(file.path(expt_dir, 'matrix.mtx'))
-  genes <- read_tsv(file.path(expt_dir, 'genes.tsv'), col_names = F) %>% 
+  genes <- read_tsv(file.path(expt_dir, 'genes.tsv'), col_names = F, col_types = cols()) %>% 
     set_colnames(c('Ensembl_ID', 'Gene_Symbol'))
-  barcodes <- read_tsv(file.path(expt_dir, 'barcodes.tsv'), col_names = F) 
-  classifications <- read_csv(file.path(expt_dir, 'classifications.csv')) %>% 
+  barcodes <- read_tsv(file.path(expt_dir, 'barcodes.tsv'), col_names = F, col_types = cols()) 
+  classifications <- read_csv(file.path(expt_dir, 'classifications.csv'), col_types = cols()) %>% 
     as.data.frame() 
   stopifnot('barcode' %in% colnames(classifications))
   stopifnot(nrow(classifications) == nrow(barcodes))
@@ -130,32 +98,40 @@ load_expt_data <- function(expt_dir) {
   return(list(counts = rMat, gene_info = genes, cell_info = classifications))
 }
 
-#' Title
+
+#' Load table of cell info from a specified set of experiments
 #'
 #' @param expt_params: parameters defining desired experiment 
 #' @param QC_filter: whether or not to use only cells called 'normal' 
+#' @param local: force loading data from local data directory (default = FALSE)
 #'
 #' @return
 #' @export
 #'
 #' @examples
-load_cell_info <- function(expt_params, QC_filter = TRUE) {
+load_cell_info <- function(expt_params, QC_filter = TRUE, local = globals$local_data) {
   if ('data_sets' %in% names(expt_params)) {
-    if (expt_params$load_from_taiga) {
+    if (expt_params$load_from_taiga & !local) {
       df <- ldply(expt_params$data_sets, function(dset) {
         taiga_name <- cdsc:::get_permaname_from_expt_string(sc_expts[[dset]]$taiga_name) 
         taigr::load.from.taiga(data.name=taiga_name, data.file = 'classifications', data.version = sc_expts[[dset]]$taiga_version)
       }, .id = 'condition')
     } else {
-      data_dir <- get_Gdrive_path(expt_params)
+      data_dir <- here::here('data')
       df <- ldply(expt_params$data_sets, function(dset) {
-        read_csv(file.path(data_dir, dset, 'classifications.csv')) %>% 
+        read_csv(file.path(data_dir, dset, 'classifications.csv'), col_types = cols()) %>% 
           as.data.frame() 
       }, .id = 'condition')
     }
   } else {
-    taiga_name <- cdsc:::get_permaname_from_expt_string(expt_params$taiga_name) 
+    if (!is.null(expt_params$taiga_name) & !local) {
+      taiga_name <- cdsc:::get_permaname_from_expt_string(expt_params$taiga_name) 
     df <- taigr::load.from.taiga(data.name=taiga_name, data.file = 'classifications', data.version = expt_params$taiga_version)
+    } else {
+      data_dir <- here::here('data')
+      df <- read_csv(file.path(data_dir, expt_params$expt_name, 'classifications.csv'), col_types = cols()) %>% 
+        as.data.frame()  
+    }
   }
   
   stopifnot('barcode' %in% colnames(df))
@@ -163,6 +139,36 @@ load_cell_info <- function(expt_params, QC_filter = TRUE) {
     df %<>% dplyr::filter(cell_quality == 'normal')
   }
   return(df)
+}
+
+
+# helper function that gets appropriate path for data when stored on Google Drive
+get_Gdrive_path <- function(expt_params) {
+  if (dir.exists("~/google_drive/Project Apollo/")) {
+    gdrive_path <- "~/google_drive/Project Apollo/"
+  } else if (dir.exists('/Volumes/GoogleDrive/My Drive/Project Apollo')) {
+    gdrive_path <- '/Volumes/GoogleDrive/My Drive/Project Apollo'
+  } else {
+    stop('Need to add Gdrive path')
+  }
+  if (expt_params$expt_batch == 'expt3') {
+    data_dir <- paste0(gdrive_path, '/Apollo drugs /scRNAseq_003_004')
+  } else if (expt_params$expt_batch == 'expt2') {
+    data_dir <- paste0(gdrive_path, '/Apollo genetics/Apollo_scRNAseq_002')
+  } else if (expt_params$expt_batch == 'expt1') {
+    data_dir <- paste0(gdrive_path, '/Apollo drugs /scRNAseq Pilot 001')
+  } else if (expt_params$expt_batch == 'expt5') {
+    data_dir <-paste0(gdrive_path, '/Apollo drugs /scRNAseq_005')
+  } else if(expt_params$expt_batch == 'expt6') {
+    data_dir <- paste0(gdrive_path, '/Apollo genetics/Apollo_scRNAseq_006')
+  } else if(expt_params$expt_batch == 'expt9') {
+    data_dir <- paste0(gdrive_path, '/Prensner')
+  } else if (expt_params$expt_batch == 'expt10') {
+    data_dir <- paste0(gdrive_path,  '/Apollo drugs /scRNAseq_010')
+  } else if(expt_params$expt_batch == 'expt11') {
+    data_dir <- paste0(gdrive_path,  '/Apollo genetics/Apollo_scRNAseq_011')
+  }
+  return(data_dir)
 }
 
 
@@ -230,7 +236,7 @@ load_collapsed_profiles <- function(expt_data, results_dir, type) {
 }
 
 
-#' Title: Load a set of collapsed expression profiles across a set of treat and control experiments. Either sum- or avg-collapsed across single cells
+#' Load a set of collapsed expression profiles across a set of treat and control experiments. Either sum- or avg-collapsed across single cells
 #'
 #' @param expt_info list specifying expt details
 #' @param results_dir directory with saved summed_counts.rds results
@@ -329,7 +335,7 @@ merge_sc_data <- function(data_list, target_CLs = NULL) {
 }
 
 
-#' Convert ensemble gene names to hugo symbols
+#' Convert gene labels to hgnc symbols (rather than ensemble ids)
 #'
 #' @param dat Seurat object
 #'
@@ -371,7 +377,7 @@ get_summed_counts <- function(seuDat, group_var = 'singlet_ID') {
 }
 
 
-#' Title: Apply log counts-per million transformation, with optional library size adjustment
+#' Apply log counts-per million transformation, with optional library size adjustment
 #'
 #' @param counts 
 #' @param prior_cnt 

@@ -2,7 +2,7 @@
 
 This repo contains code associated with our manuscript describing MIX-Seq, our method for multiplexed transcriptional profiling of perturbation responses across mixtures of cancer cell lines.
 
-
+For SNP-classification code, see [single_cell_classification](https://github.com/acwarren/single_cell_classification)
 
 ## Data
 
@@ -22,6 +22,11 @@ The code can be organized into config files, helper functions, preprocessing scr
 - expt_meta_data.R: Create metadata defining which datasets and comparisons are used in the analysis
 
 - global_params.R: Define global params shared across analysis scripts.
+
+NOTES: 
+-In order to run the analyses locally, you should set the global parameter 'local_data' to TRUE in global_params.R. If you have the data from the figshare repo stored locally in a folder called 'data' within your project directory (each data directory unzipped). The code should run. 
+
+
 
 
 ### Helper functions

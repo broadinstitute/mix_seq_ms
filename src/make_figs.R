@@ -4,9 +4,9 @@ library(cowplot)
 library(Seurat)
 library(here)
 
-source(here::here('src', 'MixSeq_helpers.R'))
 source(here::here('src', 'expt_meta_data.R'))
 source(here::here('src', 'global_params.R'))
+source(here::here('src', 'MixSeq_helpers.R'))
 
 results_dir <- here::here('data')
 fig_dir <- here::here('figures')
