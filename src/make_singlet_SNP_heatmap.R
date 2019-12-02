@@ -18,15 +18,15 @@ make_singlet_SNP_heatmap <- function() {
   ggplot(df, aes(barcode, name_short)) + 
     geom_tile(aes(fill = dev_ratio)) + 
     scale_fill_gradient(low = "white", high = 'darkblue', name = 'Normalized LL\n(Deviance ratio)') +
-    cdsr::theme_Publication(legend_bottom = FALSE) +
+    cdsr::theme_Publication(legend_bottom = TRUE) +
     theme(axis.text.x = element_blank(), 
           axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 6)) +
     xlab(sprintf('Cells (n = %d)', length(unique(df$barcode)))) +
     ylab('Reference cell line')  +
-    guides(fill = guide_colorbar(barwidth = 0.75, barheight = 6, 
+    guides(fill = guide_colorbar(barwidth = 8, barheight = 0.75, 
                                  title.theme = element_text(size = 11), 
                                  label.theme = element_text(size = 9))) +
     coord_cartesian(clip = 'off')
-  ggsave(file.path(fig_dir, 'SNP_heatmap_example.png'), width = 5, height = 3.)
+  ggsave(file.path(fig_dir, 'SNP_heatmap_example.png'), width = 4.5, height = 4.)
 }

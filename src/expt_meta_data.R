@@ -130,7 +130,7 @@ sc_expts <- list(
     tramet_tc_expt5 = list(
       expt_name = 'trametinib_tc_expt5',
       taiga_name = 'trametinib_tc_expt5',
-      taiga_version = 4,
+      taiga_version = 5,
       expt_batch = 'expt5'
     ),
   
@@ -359,21 +359,6 @@ sc_DE_meta <- list(
         ETNK1_GE = list(
           dset = 'GE',
           gene = 'ETNK1')
-      ),
-      load_from_taiga = TRUE
-    ),
-    everolimus_6hr_expt3 = list(
-      drug_name = 'everolimus',
-      data_sets = list(control_1 = 'DMSO_24hr_expt3',
-                       control_2 = 'DMSO_6hr_expt3',
-                       treat_1 = 'Everolimus_6hr_expt3'),
-      expt_batch = 'expt3',
-      expt_name = 'Everolimus_6hr_expt3',
-      annotate_omics = list(
-        PIK3CA_MUT = list(
-          dset = 'MUT_HOT',
-          gene = 'PIK3CA'
-        )
       ),
       load_from_taiga = TRUE
     ),

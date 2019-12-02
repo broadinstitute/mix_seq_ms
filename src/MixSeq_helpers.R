@@ -395,7 +395,7 @@ lcpm_trans <- function(counts, prior_cnt, nf = 1) {
 }
 
 
-#' Title Take Seurat object with cell cycle phase classified, and relabel G1 to G0/G1 and G2M to G2/M
+#' Take Seurat object with cell cycle phase classified, and relabel G1 to G0/G1 and G2M to G2/M
 #'
 #' @param seuDat 
 #'
@@ -412,13 +412,13 @@ relabel_cell_cycle_phase <- function(seuDat) {
 
 ###------------------------- STATS -----------------------------------
 
-#' Title
+#' Run differential expression analysis to compute viability-related and -independent components of response
 #'
-#' @param all_counts 
-#' @param sample_info 
-#' @param sensitivity_df 
+#' @param all_counts matrix of sum-collapsed gene counts across samples
+#' @param sample_info #sample info table
+#' @param sensitivity_df #dataframe of perturbation sensitivity values (with CCLE_ID cell line names)
 #' @param prior_cnt 
-#' @param use_voom 
+#' @param use_voom #default FALSE for limma-trend
 #' @param norm_meth 
 #' @param min_counts_per_gene 
 #' @param min_det_samples 

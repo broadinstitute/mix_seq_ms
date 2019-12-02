@@ -246,6 +246,10 @@ make_predictive_model_figs <- function() {
     cdsr::scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_all.png'), width = 4, height = 4)
   
+  with(pmod_results_wide, {
+    print(sum(!is.na(matched_sample_pred) & !is.na(LFC_pred)))
+    print(wilcox.test(matched_sample_pred, LFC_pred, paired = TRUE))
+  })
   pmod_results_wide %>% 
     ggplot(aes(matched_sample_pred, LFC_pred)) + 
     geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.2) +

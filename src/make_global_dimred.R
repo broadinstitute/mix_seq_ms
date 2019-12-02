@@ -84,7 +84,7 @@ make_global_dimred <- function() {
                                n.neighbors = umap_nneighbors,
                                min.dist =  umap_mindist, 
                                metric = metric,
-                               seed.use = 1,
+                               seed.use = 3,
                                verbose=F)
   
   df <- Embeddings(new_obj, reduction = 'umap') %>% 
@@ -122,7 +122,7 @@ make_global_dimred <- function() {
             Trametinib_6hr = '#00BFC4')
   stopifnot(all(df$drug_time %in% names(cols)))
   
-  zoom_x <- c(1.5, 7); zoom_y <- c(-5, 3)
+  zoom_x <- c(-7.75, -1.5); zoom_y <- c(-7, 0)
   
   #Make overall plot colored by treatment
   g <- df %>% 
@@ -157,7 +157,7 @@ make_global_dimred <- function() {
     guides(fill = F, color = F) +
     scale_color_manual(values = cols) +
     scale_fill_manual(values = cols) +
-    geom_text(data = avgs_z, aes(label = drug_time, color = drug_time), size = 4) +
+    # geom_text(data = avgs_z, aes(label = drug_time, color = drug_time), size = 4) +
     cdsr::theme_Publication()  +
     theme_void() +
     theme(axis.title.x = element_blank(), axis.title.y = element_blank(),

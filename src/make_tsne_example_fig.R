@@ -120,22 +120,27 @@ make_tsne_example_fig <- function(expt_params) {
   
   #cell cycle phase example (specifically for nutlin)
   df %<>% dplyr::mutate(Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
+  df %<>% dplyr::mutate(tcond = str_replace(tcond, 'idasanutlin', 'nutlin'))
   g <- ggplot(df %>% 
                 # dplyr::filter(cell_quality == 'normal', condition == 'treat'),
               dplyr::filter(cell_quality == 'normal'),
               aes(t1, t2)) +
-    geom_point(aes(fill = Phase, size = condition, alpha = condition), pch = 21, color = 'white', alpha = 0.7, stroke = 0.1) +
+    geom_point(aes(fill = Phase, color = tcond, stroke = tcond), pch = 21, alpha = 0.7, size = 0.6) +
     scale_alpha_manual(values = c(`control` = 0.4, `treat` = 0.8)) +
     # scale_size_manual(values = c(`FALSE` = 0.6, `TRUE` = 1.3)) +
-    scale_size_manual(values = c(`control` = 0.4, `treat` = 0.8)) +
-    guides(alpha = F, size = F, fill = guide_legend(override.aes = list(size = 3), nrow = 3),
-           color = guide_legend(nrow = 2)) +
+    # scale_size_manual(values = c(`control` = 0.4, `treat` = 0.8)) +
+    scale_color_manual(values = c('darkgray', 'indianred4')) +
+    scale_discrete_manual(aesthetics = "stroke", values = c(0.25, 0.25)) +
+    guides(alpha = F, size = F, stroke = F, fill = guide_legend(override.aes = list(size = 3), nrow = 3),
+           color = guide_legend(title = element_blank(), nrow = 2, override.aes = list(size = 3, stroke = 1.5))) +
     xlab('tSNE 1') + ylab('tSNE 2') +
     cdsr::theme_Publication() + 
     cdsr::scale_fill_Publication()+
     theme(legend.text=element_text(size=8)) +
-    geom_segment(data = avgs, aes(x = ct1, y = ct2, xend = tt1, yend = tt2, color = TP53_WT),
-                  arrow = arrow(length = unit(0.2,"cm")), size = 0.7, alpha = 0.75) 
+    geom_segment(data = avgs %>% dplyr::filter(!TP53_WT), aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
+                  arrow = arrow(length = unit(0.2,"cm")), size = 0.75, alpha = 0.75, color = '#F8766D') +
+    geom_segment(data = avgs %>% dplyr::filter(TP53_WT), aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
+               arrow = arrow(length = unit(0.2,"cm")), size = 1.25, alpha = 0.75, color = '#619CFF') 
   g
   ggsave(file.path(fig_dir, paste0(expt_name, '_', 'combined_tsne_CCP.png')), width = 4.2, height = 4.25)
 
