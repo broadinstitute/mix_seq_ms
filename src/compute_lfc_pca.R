@@ -11,7 +11,7 @@ results_dir <- here::here('data')
 
 #PARAMS
 pca_prior_counts <- 10 
-min_cells <- 5 #min cells per condition to include cell line in PCA calc
+min_cells <- 10 #min cells per condition to include cell line in PCA calc
 
 compute_lfc_pca <- function(cur_expt) {
   sprintf('Processing expt %s', cur_expt$expt_name)

@@ -48,6 +48,7 @@ make_cell_rep_fig(sc_DE_meta$trametinib_24hr_expt3)
 
 source(here::here('src', 'make_PCA_example_figures.R'))
 make_PCA_example_figures(sc_DE_meta$trametinib_24hr_expt3)
+make_PCA_example_figures(sc_DE_meta$Trametinib_expt10)
 
 source(here::here('src', 'make_subclone_response_figs.R'))
 make_subclone_response_figs(sc_DE_meta$trametinib_24hr_expt1, targ_CL = 'IALM_LUNG')

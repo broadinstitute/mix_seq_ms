@@ -1,5 +1,5 @@
 make_PC_AUC_compare_fig <- function() {
-    n_pcs_analyze <- 1
+    n_pcs_analyze <- 3
     used_expts <- c('Trametinib_6hr_expt1',
                     'Bortezomib_6hr_expt1',
                     'Bortezomib_24hr_expt1',
@@ -65,7 +65,44 @@ make_PC_AUC_compare_fig <- function() {
     scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
     guides(fill = guide_legend(title = 'FDR < 0.1')) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.x = element_blank())
+          axis.title.x = element_blank()) +
+    ylim(0, 0.8)
   ggsave(file.path(fig_dir, 'all_PC1_sens_corrs.png'), width = 4, height = 3.5)
 
+  PC_PRISM_cors %>% 
+    dplyr::filter(PC == 'PC2') %>% 
+    dplyr::mutate(q = p.adjust(sens_p, method = 'BH')) %>% 
+    dplyr::mutate(expt_name = factor(expt_name, levels = PC_PRISM_cors %>% 
+                                       dplyr::distinct(expt_name, .keep_all=T) %>% 
+                                       dplyr::arrange(dplyr::desc(sens_rmag)) %>%
+                                       .[['expt_name']])) %>% 
+    ggplot(aes(expt_name, sens_rmag)) + 
+    geom_bar(aes(fill = q < 0.1), stat = 'identity') +
+    cdsr::theme_Publication() +
+    ylab('PC2-sensitivity\ncorrelation magnitude') +
+    scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
+    guides(fill = guide_legend(title = 'FDR < 0.1')) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.x = element_blank())+
+    ylim(0, 0.8)
+  ggsave(file.path(fig_dir, 'all_PC2_sens_corrs.png'), width = 4, height = 3.5)
+ 
+  PC_PRISM_cors %>% 
+    dplyr::filter(PC == 'PC3') %>% 
+    dplyr::mutate(q = p.adjust(sens_p, method = 'BH')) %>% 
+    dplyr::mutate(expt_name = factor(expt_name, levels = PC_PRISM_cors %>% 
+                                       dplyr::distinct(expt_name, .keep_all=T) %>% 
+                                       dplyr::arrange(dplyr::desc(sens_rmag)) %>%
+                                       .[['expt_name']])) %>% 
+    ggplot(aes(expt_name, sens_rmag)) + 
+    geom_bar(aes(fill = q < 0.1), stat = 'identity') +
+    cdsr::theme_Publication() +
+    ylab('PC3-sensitivity\ncorrelation magnitude') +
+    scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
+    guides(fill = guide_legend(title = 'FDR < 0.1')) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.x = element_blank())+
+    ylim(0, 0.8)
+  ggsave(file.path(fig_dir, 'all_PC3_sens_corrs.png'), width = 4, height = 3.5)
+  
 }

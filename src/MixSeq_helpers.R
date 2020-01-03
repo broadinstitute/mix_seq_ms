@@ -410,6 +410,103 @@ relabel_cell_cycle_phase <- function(seuDat) {
 }
 
 
+
+# MODE FITTING ------------------------------------------------------------
+
+# Takes a list of predictor sets and cbinds to a single predictor matrix
+proc_list_data <- function(X_list, used_CLs) {
+  X <- lapply(names(X_list), function(x_name) {
+    x <- X_list[[x_name]]
+    colnames(x$data) <- paste0(colnames(x$data), '_', x_name)
+    return(x$data[used_CLs, ])
+  }) %>% do.call(cbind, .)
+  return(X)
+}
+
+#find CL list intersecting all rownames of X and target y
+get_used_CLs <- function(X, y) {
+  extract_CLs <- function(d) {
+    if (class(d) == 'list') {
+      if (length(d) > 1) {
+        used_CLs <- Reduce(intersect, lapply(d, function(x) {rownames(x$data %>% na.omit)}))
+      } else {
+        used_CLs <- rownames(d[[1]]$data %>% na.omit)
+      }
+    } else if (class(d) == 'matrix') {
+      used_CLs <- rownames(d)
+    } else {
+      used_CLs <- names(d)
+    }
+    return(used_CLs)
+  }
+  data_sets <- list(X = X, y = y)
+  return(Reduce(intersect, lapply(data_sets, extract_CLs)))
+}
+
+
+#' Take a set of inputs which may be in list or matrix form, and process into model-function inputs
+#'
+#' @param X
+#' @param y
+#' @param Z
+#' @param family
+#'
+#' @return
+#' @export
+#'
+#' @examples
+proc_input_data <- function(X, y) {
+  used_CLs <- get_used_CLs(X, y[!is.na(y)])
+  if (class(X) == 'list') {
+    X <- proc_list_data(X, used_CLs)
+  } else if (class(X) == 'matrix') {
+    X <- X[used_CLs, , drop=FALSE]
+  }
+  y <- y[used_CLs]
+  
+  X %<>% set_colnames(make.names(colnames(X)))
+  return(list(X = X, y = y))
+}
+
+#get top marginal correlations between X and y in input data
+get_top_feat <- function(input_data, n_top_feat, sample_set = NULL) {
+  if (!is.null(sample_set)) {
+    X = input_data$X[sample_set,]
+    y = input_data$y[sample_set]
+  } else {
+    X <- input_data$X
+    y <- input_data$y
+  }
+  cor(X, as.matrix(y, ncol = 1), use = 'pairwise.complete.obs') %>% 
+    set_colnames('cor') %>% 
+    as.data.frame() %>% 
+    rownames_to_column(var = 'Gene') %>% 
+    dplyr::filter(!is.na(cor)) %>% 
+    dplyr::arrange(dplyr::desc(abs(cor))) %>% 
+    head(n_top_feat) %>% 
+    .[['Gene']]
+}
+
+# Get random forest out-of-sample predictions using k-fold CV
+get_rf_xv_results <- function(input_data, kfold, fids, n_top_feat) {
+  LFC_results <- ldply(seq(kfold), function(xv) {
+    cur_train <- which(fids != xv)
+    cur_test <- which(fids == xv)
+    used_feat <- get_top_feat(input_data, n_top_feat = n_top_feat, sample_set = cur_train)
+    rf_df <- cbind(input_data$X[, used_feat], data_frame(response = input_data$y))
+    mod_fit <- ranger::ranger('response ~ .', data = rf_df[cur_train,])
+    test_preds <- predict(mod_fit, data = rf_df[cur_test,])$predictions
+    data_frame(
+      xv_id = xv,
+      DEPMAP_ID = names(cur_test),
+      prediction = test_preds,
+      obs = rf_df[cur_test, 'response']
+    ) 
+  }, .parallel = TRUE)
+}
+
+
+
 ###------------------------- STATS -----------------------------------
 
 #' Run differential expression analysis to compute viability-related and -independent components of response

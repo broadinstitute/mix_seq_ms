@@ -87,35 +87,54 @@ make_subclone_response_figs <- function(expt, targ_CL) {
       dplyr::mutate(cluster_label = paste0('cluster ', cluster))
     seg_avgs <- full_join(avgs, tavgs, by = 'cluster')
     
-    ggplot(df, aes(tSNE_1, tSNE_2)) +
-      geom_point(aes(fill = tcond), size = 2, pch = 21, color = 'white', stroke = 0.1, alpha = 0.75) +
-      xlab('tSNE 1') + ylab('tSNE 2') +
-      scale_fill_manual(values = c('darkgray', 'indianred4')) +
-      cdsr::theme_Publication() +
-      geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
-      geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
-                   arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
-      coord_cartesian(clip = 'off') +
-      guides(fill = guide_legend(title = element_blank(), override.aes = list(size = 3)))
-    ggsave(file.path(fig_dir, sprintf('%s_%s_cluster.png', targ_CL, expt$expt_name)), width = 4, height = 4)
+    # ggplot(df, aes(tSNE_1, tSNE_2)) +
+    #   geom_point(aes(fill = tcond), size = 2, pch = 21, color = 'white', stroke = 0.1, alpha = 0.75) +
+    #   xlab('tSNE 1') + ylab('tSNE 2') +
+    #   scale_fill_manual(values = c('darkgray', 'indianred4')) +
+    #   cdsr::theme_Publication() +
+    #   geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
+    #   geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
+    #                arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
+    #   coord_cartesian(clip = 'off') +
+    #   guides(fill = guide_legend(title = element_blank(), override.aes = list(size = 3)))
+    # ggsave(file.path(fig_dir, sprintf('%s_%s_cluster.png', targ_CL, expt$expt_name)), width = 4, height = 4)
 
     ggplot(df, aes(tSNE_1, tSNE_2)) +
-      geom_point(aes(color = tcond, fill = Phase, stroke = tcond), pch = 21, size = 2.25, alpha = 0.75) +
+      geom_point(aes(size = tcond, fill = Phase, stroke = tcond), pch = 21, alpha = 0.8) +
       xlab('tSNE 1') + ylab('tSNE 2') +
       cdsr::scale_fill_Publication() +
       scale_color_manual(values = c('darkgray', 'indianred4')) +
-      scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 1)) +
+      scale_size_manual(values = c(1.25, 2.75)) +
+      # scale_alpha_manual(values = c(0.6, 0.75)) +
+      scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 0.75)) +
       cdsr::theme_Publication() +
       geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
       geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
-                   arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
+                   arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
       coord_cartesian(clip = 'off') +
       guides(stroke = FALSE,
-             fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size = 3)), 
-             color = guide_legend(title = element_blank(), override.aes = list(size = 3), nrow = 2))
+             size = guide_legend(title = element_blank(), nrow = 2),
+             alpha = FALSE, 
+             fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size = 3))
+             # color = guide_legend(title = element_blank(), override.aes = list(size = 3), nrow = 2)
+             )
     ggsave(file.path(fig_dir, sprintf('%s_%s_cluster_phase.png', targ_CL, expt$expt_name)), width = 3.5, height = 4)
 
-    
+    # ggplot(df %>% filter(tcond == 'DMSO'), aes(tSNE_1, tSNE_2)) +
+    #   geom_point(aes(color = tcond, fill = Phase, stroke = tcond), pch = 21, size = 2.25, alpha = 0.75) +
+    #   xlab('tSNE 1') + ylab('tSNE 2') +
+    #   cdsr::scale_fill_Publication() +
+    #   scale_color_manual(values = c('darkgray', 'indianred4')) +
+    #   scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 1)) +
+    #   cdsr::theme_Publication() +
+    #   geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
+    #    coord_cartesian(clip = 'off') +
+    #   guides(stroke = FALSE,
+    #          fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size = 3)), 
+    #          color = guide_legend(title = element_blank(), override.aes = list(size = 3), nrow = 2))
+    # ggsave(file.path(fig_dir, sprintf('%s_%s_cluster_phase_DMSO.png', targ_CL, expt$expt_name)), width = 3.5, height = 4)
+    # 
+      
     #RUN DE analysis to test cluster-treatment interaction
     seuSub[['cluster_condition']] <- paste0(seuSub[['condition']][,1], '.', seuSub[['cluster']][,1])
     

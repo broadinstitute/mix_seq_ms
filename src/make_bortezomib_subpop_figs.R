@@ -1,9 +1,9 @@
 make_bortezomib_subpop_figs <- function(targ_CLs) {
+  library(magrittr)
   
   #PARAMS
   n_PCs <- 10
   use_SCTransform <- TRUE
-  prior_cnt <- 0.125
   clust_k <- 20
   clust_res <- 0.25
   
@@ -54,13 +54,11 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
       rownames_to_column(var = 'barcode') %>% 
       cbind(seuSub@meta.data) %>% 
       dplyr::mutate(condition = ifelse(condition %in% c('control_1', 'control_2'), 'DMSO', condition),
-             condition = plyr::revalue(condition, c(treat_1 = 'Bort. 24hr', treat_2 = 'Bort. 6hr')),
-             condition = factor(condition, levels = c('DMSO', 'Bort. 6hr', 'Bort. 24hr'))) %>% 
+             condition = plyr::revalue(condition, c(treat_1 = 'bortezomib')),
+             condition = factor(condition, levels = c('DMSO', 'bortezomib'))) %>% 
       left_join(data_frame(barcode = names(Idents(treatSub)),
                            cluster = Idents(treatSub)), by = 'barcode') %>% 
       dplyr::mutate(cluster = plyr::revalue(cluster, replace = c(`0` = 1, `1` = 2)),
-             class = ifelse(is.na(cluster), 'DMSO', paste0('bortezomib_', cluster)),
-             class = factor(class, levels = c('DMSO', 'bortezomib_1', 'bortezomib_2')),
              Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
     
     stopifnot(nlevels(treatSub) == 2) #assumes that there are two clusters in the treated population
@@ -74,45 +72,39 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     if (clust_phase %>% dplyr::arrange(dplyr::desc(avg_G1)) %>% head(1) %>% .[['cluster']] == 2) {
       df %<>% dplyr::mutate(cluster = plyr::revalue(cluster, replace = c(`1` = 2, `2` = 1)))
     }
-    df %<>% dplyr::mutate(cluster = factor(cluster, levels = c(1, 2)))
+    df %<>% dplyr::mutate(cluster = factor(cluster, levels = c(1, 2)),
+                        cluster_cond = ifelse(is.na(cluster), 'DMSO', paste0('bortezomib_', cluster)),
+                    cluster_cond = factor(cluster_cond, levels = c('DMSO', 'bortezomib_1', 'bortezomib_2')))
     
-    xr <- with(df %>% filter(cell_quality == 'normal'), range(df$t1))
-    yr <- with(df %>% filter(cell_quality == 'normal'), range(df$t2))
+    xr <- with(df, range(df$t1))
+    yr <- with(df, range(df$t2))
     avgs <- df %>% 
-      dplyr::filter(condition == 'Bort. 24hr') %>% 
-      dplyr::group_by(cluster) %>% 
-      dplyr::summarise(t1 = median(t1), t2 = median(t2)) %>% 
-      dplyr::mutate(cluster_label = paste0('cluster ', cluster))
-    g <- ggplot(df %>% dplyr::filter(cell_quality == 'normal'),
-                     aes(t1, t2)) +
-      geom_point(aes(fill = condition), pch = 21, color = 'white', stroke = 0.2, size = 2.5) +
-      coord_cartesian(xlim = xr, ylim = yr, clip = 'off') +
-      guides(alpha = F, size = F) +
-      xlab(paste0(d_use, ' 1')) + ylab(paste0(d_use, ' 2')) +
-      scale_fill_manual(values = c(`DMSO` = 'darkgray',
-                                    `Bort. 24hr` = 'indianred4')) +
-      geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_label), size = 8) +
-      cdsr::theme_Publication()
+      # dplyr::filter(condition == 'Bort. 24hr') %>% 
+      dplyr::group_by(cluster_cond) %>% 
+      dplyr::summarise(t1 = median(t1), t2 = median(t2)) 
     
-    g_phase <- ggplot(df %>% filter(cell_quality == 'normal'),
-                      aes(t1, t2)) +
-      geom_point(aes(stroke = condition, fill = Phase, color = condition), pch = 21, size = 2.5, alpha = 0.75) +
-      guides(alpha = F, stroke = F,
-             fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size =3)), 
-             color = guide_legend(nrow = 2, override.aes = list(stroke = 1, size = 3),
-                                  title = element_blank())) +
-      scale_color_manual(values = c('darkgray', 'indianred4')) +
-      scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 1)) +
+    seg_avgs <- rbind(
+      cbind(avgs %>% dplyr::filter(cluster_cond == 'DMSO') %>% dplyr::rename(c1 = t1, c2 = t2), avgs %>% filter(cluster_cond == 'bortezomib_1') %>% dplyr::select(-cluster_cond)),
+      cbind(avgs %>% dplyr::filter(cluster_cond == 'DMSO') %>% dplyr::rename(c1 = t1, c2 = t2), avgs %>% filter(cluster_cond == 'bortezomib_2') %>% dplyr::select(-cluster_cond)
+    ))
+      
+    
+    g_phase <- ggplot(df, aes(t1, t2)) +
+      geom_point(aes(fill = Phase, size = condition), pch = 21, alpha = 0.8, stroke = 0.25) +
+      guides(
+             size = guide_legend(nrow = 3, title = element_blank()), 
+             fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size =3))) +
+      scale_size_manual(values = c(1.25, 2.75)) +
       xlab(paste0(d_use, ' 1')) + ylab(paste0(d_use, ' 2')) +
-      geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_label), size = 8) +
+      geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_cond), size = 6) +
+      geom_segment(data = seg_avgs, aes(x = c1, y = c2, xend = t1, yend = t2),
+                   arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
       coord_cartesian(xlim = xr, ylim = yr, clip = 'off') +
       cdsr::scale_fill_Publication() +
       cdsr::theme_Publication()
-    
 
-    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop_phase.png', cur_CL)), width = 3.5, height = 4)
-    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop.png', cur_CL)), plot = g, width = 4, height = 4)
-    
+    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop_phase.png', cur_CL)), width = 3.5, height = 4, plot = g_phase)
+
     
     #Run DE analysis comparing the two treatment clusters
     used_genes <- which(Matrix::rowSums(GetAssayData(treatSub, 'counts')[, rownames(treatSub@meta.data)] > 0) > nrow(treatSub@meta.data)*globals$min_frac_cells_det)
@@ -120,7 +112,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     dge <- calcNormFactors(dge, method = 'TMMwzp')
     design <- model.matrix(~cluster + cell_det_rate , data = df)
     dge <- estimateDisp(dge, design = design)
-    fit <- glmQLFit(dge, design = design, prior.count = prior_cnt)
+    fit <- glmQLFit(dge, design = design)
     qlf <- glmQLFTest(fit, coef = 'cluster2')
     tt_res <- topTags(qlf, n = Inf)$table %>% rownames_to_column(var = 'Gene')
     tt_res %>% 
@@ -140,6 +132,69 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     gsea_plot <- make_hyper_gsa_plot(gene_stat, gsc_data$combined, top_n = 50, n_lab_per = 5, lab_size = 2.5, max_chars = 30)  
     ggsave(file.path(fig_dir, sprintf('%s_bortezomib_treat_cluster_GSEA.png', cur_CL)),
            width = 5.5, height = 2.5)
+    
+    #Run DE analysis comparing the treatment responses of each cluster to control
+    comb_data <- merge(controlSub, treatSub)
+    comb_data[['tcond']] <- ifelse(grepl('treat', comb_data[['condition']]$condition), 'treat', 'control')
+    comb_data[['cond_cluster']] <- paste0(comb_data[['tcond']]$tcond, '_', comb_data[['seurat_clusters']]$seurat_clusters)
+    
+    used_genes <- which(Matrix::rowSums(GetAssayData(comb_data, 'counts')[, rownames(comb_data@meta.data)] > 0) > nrow(comb_data@meta.data)*globals$min_frac_cells_det)
+    dge <- DGEList(GetAssayData(comb_data, 'counts')[used_genes,rownames(comb_data@meta.data)])
+    dge <- calcNormFactors(dge, method = 'TMMwzp')
+    design <- model.matrix(~0 + cond_cluster + cell_det_rate , data = comb_data@meta.data)
+    dge <- estimateDisp(dge, design = design)
+    fit <- glmQLFit(dge, design = design)
+    
+    treat_group1 <- (grepl('treat_0', colnames(design))) %>% magrittr::divide_by(., sum(.))
+    treat_group2 <- (grepl('treat_1', colnames(design))) %>% magrittr::divide_by(., sum(.))  
+    control_group <- (grepl('control', colnames(design))) %>% magrittr::divide_by(., sum(.))   
+    
+    #get differential treatment effect
+    contr_vec <- treat_group2-control_group - (treat_group1 -control_group)
+    qlf <- glmQLFTest(fit, contrast = contr_vec)
+    tt_diff <- topTags(qlf, n = Inf)$table %>% rownames_to_column(var = 'Gene')
+    
+    #cluster1 treatment effect
+    contr_vec <- treat_group1-control_group 
+    qlf <- glmQLFTest(fit, contrast = contr_vec)
+    tt_CL1 <- topTags(qlf, n = Inf)$table %>% rownames_to_column(var = 'Gene')
+    
+    #cluster2 treatment effect
+    contr_vec <- treat_group2-control_group
+    qlf <- glmQLFTest(fit, contrast = contr_vec)
+    tt_CL2 <- topTags(qlf, n = Inf)$table %>% rownames_to_column(var = 'Gene')
+    
+    tt_comb <- full_join(tt_CL1, tt_CL2, by = 'Gene', suffix = c('_CL1', '_CL2')) %>% 
+      left_join(tt_diff %>% 
+                  dplyr::select(Gene, PValue_diff = PValue, logFC_diff = logFC, FDR_diff = FDR), by = "Gene")
+    
+    df <- tt_comb %>% dplyr::mutate(FDR = FDR_diff)
+    ggplot(df, 
+           aes(logFC_CL1, logFC_CL2)) + 
+      xlab('logFC cluster 1') +
+      ylab('logFC cluster 2') +
+      geom_point(aes(fill = -log10(FDR)), pch = 21, alpha = 0.8, size = 2, stroke = 0.1, color = 'white') + 
+      geom_abline(linetype = 'dashed') + 
+      geom_hline(yintercept = 0, linetype = 'dashed') + 
+      geom_vline(xintercept = 0, linetype = 'dashed') +
+      ggrepel::geom_label_repel(data = df %>% 
+                                  dplyr::filter(FDR_diff < 0.1) %>% 
+                                  arrange(dplyr::desc(abs(logFC_diff))) %>% 
+                                  head(15) %>% 
+                                  rbind(
+                                    df %>% 
+                                      dplyr::arrange(dplyr::desc(abs(logFC_CL1 + logFC_CL2))) %>% 
+                                      head(5)) %>% 
+                                  dplyr::distinct(Gene, .keep_all=T),
+                                aes(label = Gene, color = -log10(FDR)), 
+                                size = 2.5, label.padding = 0.1) +
+      scale_fill_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
+      scale_color_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
+      guides(color = FALSE) +
+      cdsr::theme_Publication() 
+    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_treat_cluster_LFC_scatter.png', cur_CL)),
+           width = 3.5, height = 3.5)
+    
   }
   
   for (cur_CL in targ_CLs) {

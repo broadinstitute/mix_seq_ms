@@ -70,49 +70,46 @@ make_PCA_example_figures <- function(cur_expt) {
   
   #make PC1 vs AUC scatterplot
   if (cur_expt$drug_name == 'dabrafenib') {
-    df %<>% mutate(type = factor(ifelse(BRAF_mel == TRUE, 'BRAF_mut_mel', 'other'), levels = c('other', 'BRAF_mut_mel')))
+    df %<>% mutate(type = factor(ifelse(BRAF_mel, 'BRAF_mut_mel', 'other'), levels = c('other', 'BRAF_mut_mel')))
     cur_aes <- ggplot2::aes(fill = type)
   } else if (cur_expt$drug_name == 'trametinib') {
-    df %<>% mutate(RAS_mut = ifelse(BRAF_MUT | KRAS_MUT | HRAS_MUT | NRAS_MUT, 'RAS/RAF mut', 'other'))
-    cur_aes <- ggplot2::aes(fill = RAS_mut)
-    # cur_aes <- ggplot2::aes()
+    df %<>% dplyr::mutate(type = ifelse(BRAF_MUT > 0, 'BRAF_mut', 'other'),
+                          type = ifelse(type == 'other' & KRAS_MUT > 0, 'KRAS_mut', type))
+    cur_aes <- ggplot2::aes(fill = type)
   } else {
     cur_aes <- ggplot2::aes()
   }
   ggplot(df, aes(PC1, 1-AUC_avg)) + 
     geom_point(cur_aes, alpha = 0.75, pch = 21, size = 3) + 
-    # ggpubr::stat_cor(label.x.npc = 'center') + 
     geom_smooth(method = 'lm') +
     cdsr::theme_Publication() +
     ylab('Sensitivity (1-AUC)') +
-    cdsr::scale_fill_Publication() +
-    guides(fill = guide_legend(title = element_blank()))
-  ggsave(file.path(fig_dir, sprintf('%s_PC1_PRISM_scatter.png', cur_expt$expt_name)), width = 3, height = 3)
+    guides(fill = FALSE)
+    # guides(fill = guide_legend(title = element_blank()))
+  ggsave(file.path(fig_dir, sprintf('%s_PC1_PRISM_scatter.png', cur_expt$expt_name)), width = 3.25, height = 2.75)
   
   #make PC scatter for trametinib            
   if (cur_expt$drug_name == 'trametinib') {
-    df %<>% dplyr::mutate(type = ifelse(BRAF_MUT > 0, 'BRAF_MUT', 'other'),
-                   type = ifelse(type == 'other' & KRAS_MUT > 0, 'KRAS_mut', type),
-                   sens = pmax(1-AUC_avg,0))
     ggplot(df, aes(PC1, PC2, fill = type)) + 
       geom_point(alpha = 0.75, color = 'black', pch = 21, size = 3) +
       cdsr::theme_Publication() +
       guides(fill = guide_legend(nrow = 2, title = element_blank()))
-    ggsave(file.path(fig_dir, 'trametinib_24hr_PC_scatter.png'), width = 3.5, height = 3.5)
+    ggsave(file.path(fig_dir, sprintf('%s_PC_scatter.png', cur_expt$expt_name)), width = 3, height = 3)
     
     #plot PC2 vs SOX10 expression
     GE <- load.from.taiga(data.name='depmap-rnaseq-expression-data-ccd0', data.version=14, data.file='CCLE_depMap_19Q3_TPM_ProteinCoding') %>%
       cdsr::extract_hugo_symbol_colnames()
     df %<>% left_join(data_frame(DEPMAP_ID = rownames(GE), SOX10_GE = GE[, 'SOX10']), by = 'DEPMAP_ID')
     df %<>% mutate(melanoma = ifelse(Subtype == 'melanoma', 'melanoma', 'other'))
-    ggplot(df, aes(SOX10_GE, PC2, fill = melanoma)) + 
+    ggplot(df, aes(PC2, SOX10_GE, fill = type)) + 
       geom_point(data = df %>% filter(melanoma == 'other'), alpha = 0.75, color = 'black', pch = 21, size = 3) +
-      geom_point(data = df %>% filter(melanoma == 'melanoma'), alpha = 0.75, color = 'black', pch = 21, size = 3) +
+      geom_point(data = df %>% filter(melanoma == 'melanoma'), alpha = 0.75, color = 'black', pch = 21, size = 3, stroke = 2.5) +
       cdsr::theme_Publication() +
-      scale_fill_manual(values = c(other = 'darkgray', melanoma = 'red')) +
-      guides(fill = guide_legend(nrow = 1, title = element_blank()),
-             size = guide_legend(title = 'Sensitivity (1-AUC)', nrow = 4, override.aes = list(fill = 'gray')))
-    ggsave(file.path(fig_dir, 'trametinib_24hr_PC_SOX10_scatter.png'), width = 3.5, height = 3.5)
+      ylab('SOX10 expression\n(log2 TPM)') +
+      # scale_fill_manual(values = c(other = 'darkgray', melanoma = 'red')) +
+      guides(fill = FALSE)
+      # guides(fill = guide_legend(nrow = 1, title = element_blank(), override.aes = list(stroke = 0.5)))
+      ggsave(file.path(fig_dir, sprintf('%s_PC_SOX10_scatter.png', cur_expt$expt_name)), width = 3.25, height = 2.75)
   }
    
 }
