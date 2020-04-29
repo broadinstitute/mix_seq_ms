@@ -1,4 +1,4 @@
-make_bortezomib_subpop_figs <- function(targ_CLs) {
+make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
   library(magrittr)
   
   #PARAMS
@@ -6,6 +6,9 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
   use_SCTransform <- TRUE
   clust_k <- 20
   clust_res <- 0.25
+  #umap params
+  umap_n_neighbors <- 15
+  umap_min_dist <- 1
   
   seuObj <- load_sc_data(sc_DE_meta$bortezomib_24hr_expt1, sc_expts = sc_expts)
   
@@ -37,8 +40,14 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
                      do.print = FALSE, 
                      verbose = F)
     
-    seuSub <- RunTSNE(object = seuSub, dims = 1:n_PCs, perplexity = globals$tsne_perplexity, seed.use = 1)
-    
+    if (dred == 'tsne') {
+      seuSub <- RunTSNE(object = seuSub, dims = 1:n_PCs, perplexity = globals$tsne_perplexity, seed.use = 1)
+    } else if (dred == 'umap') {
+      seuSub <- RunUMAP(object = seuSub, dims = 1:n_PCs, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors)
+    } else {
+      stop('dred value not accepted')
+    }
+        
     controlSub <- subset(seuSub, subset = condition %in% c('control_1', 'control_2'))
     treatSub <- subset(seuSub, subset = condition == 'treat_1')
     
@@ -46,8 +55,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
     treatSub <- FindNeighbors(treatSub, dims = 1:n_PCs, k.param = clust_k, verbose = FALSE)  
     treatSub <- Seurat::FindClusters(treatSub, resolution = clust_res, verbose = FALSE)
     
-    d_use <- 'tsne'
-    df <- Embeddings(object = seuSub, reduction = d_use) %>% 
+    df <- Embeddings(object = seuSub, reduction = dred) %>% 
       as.data.frame() %>% 
       .[, c(1,2)] %>% 
       set_colnames(c('t1', 't2')) %>% 
@@ -95,7 +103,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
              size = guide_legend(nrow = 3, title = element_blank()), 
              fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size =3))) +
       scale_size_manual(values = c(1.25, 2.75)) +
-      xlab(paste0(d_use, ' 1')) + ylab(paste0(d_use, ' 2')) +
+      xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
       geom_text(data = avgs, aes(x = t1-2, y = t2 + 5, label = cluster_cond), size = 6) +
       geom_segment(data = seg_avgs, aes(x = c1, y = c2, xend = t1, yend = t2),
                    arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
@@ -103,7 +111,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs) {
       cdsr::scale_fill_Publication() +
       cdsr::theme_Publication()
 
-    ggsave(file.path(fig_dir, sprintf('%s_bortezomib_subpop_phase.png', cur_CL)), width = 3.5, height = 4, plot = g_phase)
+    ggsave(file.path(fig_dir, sprintf('%s_%s_bortezomib_subpop_phase.png', cur_CL, dred)), width = 3.5, height = 4, plot = g_phase)
 
     
     #Run DE analysis comparing the two treatment clusters

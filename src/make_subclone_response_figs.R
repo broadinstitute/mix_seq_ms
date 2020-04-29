@@ -1,4 +1,4 @@
-make_subclone_response_figs <- function(expt, targ_CL) {
+make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
   library(edgeR)
   
   #PARAMS
@@ -6,6 +6,8 @@ make_subclone_response_figs <- function(expt, targ_CL) {
   clust_k <- 20
   clust_res <- 0.25
   use_SCTransform <- TRUE
+  umap_n_neighbors <- 15
+  umap_min_dist <- 1
   
   seuObj <- load_sc_data(expt, sc_expts = sc_expts)
   cell_df <- seuObj@meta.data %>% 
@@ -53,10 +55,16 @@ make_subclone_response_figs <- function(expt, targ_CL) {
                      do.print = FALSE,
                      verbose = FALSE,
                      seed.use = 42)
-    seuSub <- RunTSNE(object = seuSub, dims = 1:n_pcs_ind, 
-                      check_duplicates = FALSE,
-                      perplexity = globals$tsne_perplexity,
-                      seed.use = 42)
+    if (dred == 'tsne') {
+      seuSub <- RunTSNE(object = seuSub, dims = 1:n_pcs_ind, 
+                        check_duplicates = FALSE,
+                        perplexity = globals$tsne_perplexity,
+                        seed.use = 42)
+    } else if (dred == 'umap') {
+      seuSub <- RunUMAP(object = seuSub, dims = 1:n_pcs_ind, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors)
+    } else {
+      stop('dred value not accepted')
+    }
     seuSub_al <- Seurat::FindNeighbors(seuSub_al, 
                                    dims = 1:n_pcs_ind,
                                    k.param = clust_k,
@@ -69,8 +77,12 @@ make_subclone_response_figs <- function(expt, targ_CL) {
     seuSub[['cluster']] <- Idents(seuSub_al)
     stopifnot(nlevels(seuSub_al) == 2) #code assumes we find two clusters
     
-    df <- Embeddings(seuSub, reduction = 'tsne') %>% 
-      cbind(seuSub@meta.data)
+    df <- Embeddings(seuSub, reduction = dred) %>% 
+      as.data.frame() %>% 
+      .[, c(1,2)] %>% 
+      set_colnames(c('t1', 't2')) %>% 
+      rownames_to_column(var = 'barcode') %>% 
+      cbind(seuSub@meta.data) 
     df %<>% dplyr::mutate(tcond = plyr::revalue(treat_cond, c(`control` = 'DMSO', `treat` = expt$drug_name)),
                           cluster = plyr::revalue(cluster, replace = c(`0` = 1, `1` = 2)),
                           Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
@@ -78,12 +90,12 @@ make_subclone_response_figs <- function(expt, targ_CL) {
     avgs <- df %>% 
       dplyr::filter(tcond == 'DMSO') %>% 
       dplyr::group_by(cluster) %>% 
-      dplyr::summarise(tSNE_1 = median(tSNE_1), tSNE_2 = median(tSNE_2)) %>% 
+      dplyr::summarise(t1 = median(t1), t2 = median(t2)) %>% 
       dplyr::mutate(cluster_label = paste0('cluster ', cluster))
     tavgs <- df %>% 
       dplyr::filter(tcond != 'DMSO') %>% 
       dplyr::group_by(cluster) %>% 
-      dplyr::summarise(tSNE_t1 = median(tSNE_1), tSNE_t2 = median(tSNE_2)) %>% 
+      dplyr::summarise(t1e = median(t1), t2e = median(t2)) %>% 
       dplyr::mutate(cluster_label = paste0('cluster ', cluster))
     seg_avgs <- full_join(avgs, tavgs, by = 'cluster')
     
@@ -99,17 +111,17 @@ make_subclone_response_figs <- function(expt, targ_CL) {
     #   guides(fill = guide_legend(title = element_blank(), override.aes = list(size = 3)))
     # ggsave(file.path(fig_dir, sprintf('%s_%s_cluster.png', targ_CL, expt$expt_name)), width = 4, height = 4)
 
-    ggplot(df, aes(tSNE_1, tSNE_2)) +
+    ggplot(df, aes(t1, t2)) +
       geom_point(aes(size = tcond, fill = Phase, stroke = tcond), pch = 21, alpha = 0.8) +
-      xlab('tSNE 1') + ylab('tSNE 2') +
+      xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
       cdsr::scale_fill_Publication() +
       scale_color_manual(values = c('darkgray', 'indianred4')) +
       scale_size_manual(values = c(1.25, 2.75)) +
       # scale_alpha_manual(values = c(0.6, 0.75)) +
       scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 0.75)) +
       cdsr::theme_Publication() +
-      geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
-      geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
+      geom_text(data = avgs, aes(x = t1, y = t2, label = cluster_label), size = 7) +
+      geom_segment(data = seg_avgs, aes(x = t1, y = t2, xend = t1e, yend = t2e),
                    arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
       coord_cartesian(clip = 'off') +
       guides(stroke = FALSE,
@@ -118,7 +130,7 @@ make_subclone_response_figs <- function(expt, targ_CL) {
              fill = guide_legend(nrow = 3, override.aes = list(stroke = 0, size = 3))
              # color = guide_legend(title = element_blank(), override.aes = list(size = 3), nrow = 2)
              )
-    ggsave(file.path(fig_dir, sprintf('%s_%s_cluster_phase.png', targ_CL, expt$expt_name)), width = 3.5, height = 4)
+    ggsave(file.path(fig_dir, sprintf('%s_%s_%s_cluster_phase.png', targ_CL, expt$expt_name, dred)), width = 3.5, height = 4)
 
     # ggplot(df %>% filter(tcond == 'DMSO'), aes(tSNE_1, tSNE_2)) +
     #   geom_point(aes(color = tcond, fill = Phase, stroke = tcond), pch = 21, size = 2.25, alpha = 0.75) +

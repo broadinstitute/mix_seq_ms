@@ -6,7 +6,7 @@ For SNP-classification code, see [single_cell_classification](https://github.com
 
 ## Data
 
-The data associated with this analysis will be made available shortly.
+The data associated with this analysis can be downloaded from figshare [here](https://figshare.com/articles/MIX-seq_data/10298696)
 
 
 
@@ -24,7 +24,8 @@ The code can be organized into config files, helper functions, preprocessing scr
 - global_params.R: Define global params shared across analysis scripts.
 
 NOTES: 
--In order to run the analyses locally, you should set the global parameter 'local_data' to TRUE in global_params.R. If you have the data from the figshare repo stored locally in a folder called 'data' within your project directory (each data directory unzipped). The code should run. 
+
+- In order to run the analyses locally, you should set the global parameter 'local_data' to TRUE in global_params.R. If you have the data from the figshare repo stored locally in a folder called 'data' within your project directory (each data directory unzipped). The code should run. 
 
 
 

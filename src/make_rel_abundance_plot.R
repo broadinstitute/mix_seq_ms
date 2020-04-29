@@ -61,7 +61,7 @@ make_rel_abundance_plot <- function() {
     geom_point(aes(fill = time), pch = 21, size = 3, color = 'white', stroke = 0.1) + 
     geom_text_repel(aes(label = expt), size = 2.5) +
     cdsr::scale_fill_Publication() +
-    xlab('Sensitivity-Cell count\ncorrelation') +
+    xlab('Sensitivity-Cell abundance\ncorrelation') +
     geom_vline(xintercept = 0, linetype = 'dashed') +
     cdsr::theme_Publication()
   ggsave(file.path(fig_dir, 'rel_abundance_corr_volcano.png'), width = 4, height = 4)
@@ -80,5 +80,5 @@ make_rel_abundance_plot <- function() {
     geom_vline(xintercept = 0, linetype = 'dashed') +
     geom_hline(yintercept = 0, linetype = 'dashed') +
     cdsr::theme_Publication()
-    ggsave(file.path(fig_dir, 'rel_abundance_G1arrest_scatter.png'), width = 4.5, height = 4)
+  ggsave(file.path(fig_dir, 'rel_abundance_G1arrest_scatter.png'), width = 4.5, height = 4)
 }
