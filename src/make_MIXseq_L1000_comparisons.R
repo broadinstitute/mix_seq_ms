@@ -59,8 +59,8 @@ L1000_Phase1_avg_response_comparison <- function(MIXseq_avg_response, l1000_drug
     geom_hline(yintercept=0, linetype="dashed", color = "gray80") +
     xlab("MIX-Seq avg LFC") +
     ylab("L1000 avg mod-z") +
-    ggrepel::geom_text_repel(data=cur_avg_response,
-                             aes(label=gene_label), size=2, show.legend = FALSE, xlim=text_xlim, ylim=text_ylim) +
+    #ggrepel::geom_text_repel(data=cur_avg_response,
+    #                         aes(label=gene_label), size=2, show.legend = FALSE, xlim=text_xlim, ylim=text_ylim) +
     ggtitle(title) +
     publication_theme() + 
     theme(text=element_text(size=6), 
@@ -119,8 +119,8 @@ L1000_Phase2_avg_response_comparison <- function(MIXseq_avg_response, l1000_LINC
     geom_hline(yintercept=0, linetype="dashed", color = "gray50") +
     xlab("MIX-Seq avg LFC") +
     ylab("L1000 avg mod-z") +
-    ggrepel::geom_text_repel(data=cur_avg_response,
-                             aes(label=gene_label), size=2, show.legend = FALSE, xlim=text_xlim, ylim=text_ylim) +
+    #ggrepel::geom_text_repel(data=cur_avg_response,
+    #                         aes(label=gene_label), size=2, show.legend = FALSE, xlim=text_xlim, ylim=text_ylim) +
     ggtitle(title) +
     publication_theme() + 
     theme(text=element_text(size=6), 
