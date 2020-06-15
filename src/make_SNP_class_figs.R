@@ -10,14 +10,15 @@ source(here::here('src', 'MixSeq_helpers.R'))
 
 results_dir <- here::here('data')
 fig_dir <- here::here('figures')
+dred <- 'umap'
 
 source(here::here('src', 'make_singlet_SNP_heatmap.R'))
 make_singlet_SNP_heatmap()
 
 source(here::here('src', 'make_SNP_GE_comparison_fig.R'))
-res <- make_SNP_GE_comparison_fig('expt1')
+res <- make_SNP_GE_comparison_fig('expt1', dred = dred)
 print(res$perc_correct)
-res <- make_SNP_GE_comparison_fig('expt3')
+res <- make_SNP_GE_comparison_fig('expt3', dred = dred)
 print(res$perc_correct)
 
 source(here::here('src', 'make_oop_classification_fig.R'))

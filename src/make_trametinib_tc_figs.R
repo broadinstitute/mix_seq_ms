@@ -95,7 +95,7 @@ make_trametinib_tc_figs <- function() {
   n_tot_cells <- nrow(seuObj@meta.data)
   print(sprintf('%s total cells', n_tot_cells))
   
-  ## MAKE tSNE FIGURE
+  ## MAKE embedding FIGURE
   seuObj <- ScaleData(object = seuObj)
   seuObj <- FindVariableFeatures(object = seuObj,
                                  nfeatures = globals$n_highvar_genes,
@@ -202,6 +202,17 @@ make_trametinib_tc_figs <- function() {
     }) %>% set_rownames(all_groups)
   summed_counts %<>% t()
     
+  seuObj_anorm <- Seurat::NormalizeData(object = seuObj, 
+                                  normalization.method = "LogNormalize", 
+                                  scale.factor = 1e6) #CPM normalization
+  cond_avgs <- plyr::laply(all_groups, function(cur_group) {
+    cur_cells <- cell_df %>% 
+      dplyr::filter(ID == cur_group) %>% 
+      .[['cell_ID']]
+    log2(globals$prior_cnt + rowMeans(expm1(GetAssayData(seuObj_anorm, slot = 'data')[,cur_cells])))
+  }) %>% set_rownames(all_groups)
+  cond_avgs %<>% t()
+  
   
   sample_info <- data_frame(sample_name = colnames(summed_counts)) %>% 
     tidyr::separate(sample_name, into = c('CCLE_ID', 'condition'), sep = '\\.', remove = F) %>% 
@@ -233,6 +244,16 @@ make_trametinib_tc_figs <- function() {
   }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr')[,2],
                 condition = factor(condition, levels = tp_levs))
   
+  #repeat using mean-collapsed (rather than sum-collapsed) data
+  fit_avg_collapse <- limma::lmFit(cond_avgs[used_genes,], design) %>% 
+    limma::eBayes(trend = TRUE)
+  all_res_avg_avg_collapse <- ldply(ctests, function(cur_coef) {
+    limma::topTable(fit_avg_collapse, number = Inf, coef = cur_coef, confint = TRUE) %>%
+      rownames_to_column(var = 'Gene') %>% 
+      mutate(condition = cur_coef)
+  }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr')[,2],
+                       condition = factor(condition, levels = tp_levs))
+  
   #FIT VIABILITY SIG MODEL
   design <- model.matrix(~condition + CCLE_ID + condition:sens, data = sample_info)
   colnames(design) %<>% make.names
@@ -253,6 +274,16 @@ make_trametinib_tc_figs <- function() {
   }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr.sens')[,2],
                 condition = factor(condition, levels = tp_levs))
   
+  #fit model with mean-collapsed data
+  fit_avg_collapse <- limma::lmFit(cond_avgs[used_genes,], design) %>% 
+    limma::eBayes(trend = TRUE)
+  all_res_slope_avg_collapse <- ldply(ctests_sens, function(cur_coef) {
+    limma::topTable(fit_avg_collapse, number = Inf, coef = cur_coef, confint = TRUE) %>%
+      rownames_to_column(var = 'Gene') %>% 
+      mutate(condition = cur_coef)
+  }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr.sens')[,2],
+                       condition = factor(condition, levels = tp_levs))
+  
   ctests_int <- c('conditionTram_0hr', 
                   'conditionTram_3hr', 
                   'conditionTram_6hr', 
@@ -265,7 +296,44 @@ make_trametinib_tc_figs <- function() {
       mutate(condition = cur_coef)
   }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr')[,2],
                 condition = factor(condition, levels = tp_levs))
+  all_res_int_avg_collapse <- ldply(ctests_int, function(cur_coef) {
+    limma::topTable(fit_avg_collapse, number = Inf, coef = cur_coef, confint = TRUE) %>%
+      rownames_to_column(var = 'Gene') %>% 
+      mutate(condition = cur_coef)
+  }) %>% dplyr::mutate(condition = str_match(condition, '(Tram_[0-9]+)hr')[,2],
+                       condition = factor(condition, levels = tp_levs))
   
+  #compare sum and avg collapsed results
+  comb_slope_results <- full_join(all_res_slope, all_res_slope_avg_collapse, by = c('Gene', 'condition'), suffix = c('_sum', '_mean')) %>% 
+    dplyr::mutate(condition = paste0(str_match(condition, 'Tram_([0-9]+)')[,2], 'hr'),
+                  condition = factor(condition, levels = c('0hr', '3hr', '6hr', '12hr', '24hr', '48hr')))
+  comb_slope_results %>% 
+    ggplot(aes(logFC_sum, logFC_mean)) + 
+    geom_point(pch = 21, size = 2, color = 'white', fill = 'black', stroke = 0.1) + 
+    geom_abline() + 
+    labs(x = 'Effect Size (sum-collapse)',
+         y = 'Effect Size (mean-collapse)') +
+    ggpubr::stat_cor() + 
+    cdsr::theme_Publication() +
+    facet_wrap(~condition) +
+    ggtitle('Viability related')
+  ggsave(file.path(fig_dir, 'tc_slope_sum_mean_compare.png'), width = 6, height = 5)
+  
+  comb_int_results <- full_join(all_res_int, all_res_int_avg_collapse, by = c('Gene', 'condition'), suffix = c('_sum', '_mean')) %>% 
+    dplyr::mutate(condition = paste0(str_match(condition, 'Tram_([0-9]+)')[,2], 'hr'),
+                  condition = factor(condition, levels = c('0hr', '3hr', '6hr', '12hr', '24hr', '48hr')))
+  comb_int_results %>% 
+    ggplot(aes(logFC_sum, logFC_mean)) + 
+    geom_point(pch = 21, size = 2, color = 'white', fill = 'black', stroke = 0.1) + 
+    geom_abline() + 
+    labs(x = 'Effect Size (sum-collapse)',
+         y = 'Effect Size (mean-collapse)') +
+    ggpubr::stat_cor() + 
+    cdsr::theme_Publication() +
+    facet_wrap(~condition) +
+    ggtitle('Viability independent')
+  ggsave(file.path(fig_dir, 'tc_int_sum_mean_compare.png'), width = 6, height = 5)
+
   
   #HEATMAP PLOTS
   #get genes which are significantly down-regulated, sort by effect size
@@ -317,7 +385,42 @@ make_trametinib_tc_figs <- function() {
     scale_fill_gradient2(limits = c(-4,4), oob = squish, low = muted("blue"), high = muted("red"))
   ggsave(file.path(fig_dir, 'tc_slope_hmap.png'), width = 3.5, height = 3.5)
   
+
+  #repeat above using mean-collapsed model estimates
+  all_res_int_avg_collapse %>% 
+    dplyr::mutate(condition = as.character(condition),
+                  condition = paste0(str_replace_all(condition, 'Tram_', ''), 'hr'),
+                  condition = factor(condition, levels = c('0hr', '3hr', '6hr', '12hr', '24hr', '48hr'))) %>% 
+    dplyr::filter(Gene %in% int_genes) %>% 
+    dplyr::mutate(Gene = factor(Gene, levels = int_genes)) %>% 
+    ggplot(aes(condition, Gene, fill = logFC)) + 
+    geom_tile() +
+    xlab('Time post-treatment') +
+    labs(fill = 'Effect Size') +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          legend.position = 'bottom',
+          legend.direction = 'horizontal') +
+    scale_fill_gradient2(limits = c(-3,3), oob = squish, low = muted("blue"), high = muted("red"))
+  ggsave(file.path(fig_dir, 'tc_int_hmap_avg_collapsed.png'), width = 3.5, height = 3.5)
   
+  
+  all_res_slope_avg_collapse %>% 
+    dplyr::mutate(condition = as.character(condition),
+                  condition = paste0(str_replace_all(condition, 'Tram_', ''), 'hr'),
+                  condition = factor(condition, levels = c('0hr', '3hr', '6hr', '12hr', '24hr', '48hr'))) %>% 
+    dplyr::filter(Gene %in% slope_genes) %>% 
+    dplyr::mutate(Gene = factor(Gene, levels = slope_genes)) %>% 
+    ggplot(aes(condition, Gene, fill = logFC)) + 
+    geom_tile() +
+    xlab('Time post-treatment') +
+    guides(fill = guide_colorbar(title = 'Effect Size')) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          legend.position = 'bottom',
+          legend.direction = 'horizontal') +
+    scale_fill_gradient2(limits = c(-4,4), oob = squish, low = muted("blue"), high = muted("red"))
+  ggsave(file.path(fig_dir, 'tc_slope_hmap_avg_collapsed.png'), width = 3.5, height = 3.5)
+  
+    
   #GSEA on these components
   get_condition_GSEA <- function(df, gsc, n_top_genes) {
     all_genes <- unique(df$Gene)
@@ -386,7 +489,42 @@ make_trametinib_tc_figs <- function() {
   ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new.png'),
          width = 3, height = 2.25)
   
+  #repeat with avg-collapsing  
+  gsea_int_avg_collapse <- get_condition_GSEA(all_res_int_avg_collapse, gsc_data$hallmark, n_top_genes)
+  gsea_slope_avg_collapse <- get_condition_GSEA(all_res_slope_avg_collapse, gsc_data$hallmark, n_top_genes)
+
+  gsea_int_avg_collapse %>% 
+    dplyr::filter(gset_dir %in% c('HALLMARK_KRAS_SIGNALING_UP.down')) %>% 
+    dplyr::mutate(gene_set = str_replace(gene_set, 'HALLMARK_', '')) %>% 
+    ggplot(aes(condition, enrich, group = gset_dir)) +
+    geom_line() +
+    geom_point(size = 3) + 
+    cdsr::theme_Publication() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          legend.text = element_text(size = 9)) +
+    geom_hline(yintercept = 0, linetype = 'dashed') + 
+    # guides(color = FALSE) +
+    ylab('Gene set enrichment\n-log10(p-value)') +
+    xlab('Time post-treatment')
+  ggsave(file.path(fig_dir, 'trametinib_tc_int_gsea_new_avg_collapse.png'),
+         width = 3, height = 2.25)
   
+  gsea_slope_avg_collapse %>% 
+    dplyr::filter(gset_dir %in% c('HALLMARK_G2M_CHECKPOINT.down')) %>% 
+    dplyr::mutate(gene_set = str_replace(gene_set, 'HALLMARK_', '')) %>% 
+    ggplot(aes(condition, enrich, group = gset_dir)) +
+    geom_line() +
+    geom_point(size = 3) + 
+    cdsr::theme_Publication() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),
+          legend.text = element_text(size = 9)) +
+    geom_hline(yintercept = 0, linetype = 'dashed') + 
+    guides(color = guide_legend(nrow = 3, title = element_blank())) +
+    # guides(color = FALSE) +
+    ylab('Gene set enrichment\n-log10(p-value)') +
+    xlab('Time post-treatment') 
+  ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new_avg_collapse.png'),
+         width = 3, height = 2.25)
   
   
   # CC ARREST

@@ -1,12 +1,16 @@
 #make tSNE plot comparing SNP and GE-based classification for a given experiment batch (neg-control data)
-make_SNP_GE_comparison_fig <- function(expt_batch) {
+make_SNP_GE_comparison_fig <- function(expt_batch, dred) {
+  
   all_ref_lines <- read_csv(here::here('data', 'bulk_reference_CLs.csv'))
   source(here::here('src', 'global_params.R'))
   
   #PARAMS
   n_highvar_genes_compare <- 5000 #number of genes to use for comparing CCLE and cluster avgs
   vtr <- c()
-
+  #umap params
+  umap_n_neighbors <- 15
+  umap_min_dist <- 1
+  
   if (expt_batch == 'expt1') {
     cur_expt <- list(
       data_sets = list(Untreated = "Untreated_6hr_expt1",
@@ -59,9 +63,15 @@ make_SNP_GE_comparison_fig <- function(expt_batch) {
                    npcs = n_pcs,
                    verbose = FALSE)
   
-  seuObj <- RunTSNE(object = seuObj, dims = 1:n_pcs, check_duplicates = FALSE, seed.use = 1)
+  if (dred == 'tsne') {
+    seuObj <- RunTSNE(object = seuObj, dims = 1:n_pcs, check_duplicates = FALSE, seed.use = 1)
+  } else if (dred == 'umap') {
+    seuObj <- RunUMAP(object = seuObj, dims = 1:n_pcs, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors)
+  } else {
+    stop('dred value not accepted')
+  }
   
-  full_df <- Embeddings(object = seuObj, reduction = 'tsne') %>% 
+  full_df <- Embeddings(object = seuObj, reduction = dred) %>% 
     as.data.frame() %>% 
     set_colnames(c('t1', 't2')) %>% 
     rownames_to_column(var = 'barcode') %>% 
@@ -130,10 +140,10 @@ make_SNP_GE_comparison_fig <- function(expt_batch) {
     geom_point(data = full_df %>% filter(cell_quality == 'low_quality'), color = 'gray', alpha = 0.75, size = dot_size) +
     geom_point(data = full_df %>% filter(!agree, cell_quality == 'normal'), color = 'red', alpha = 0.75, size = dot_size) +
     guides(color = F) +
-    xlab('tSNE 1') + ylab('tSNE 2') +
+    xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
     # ggtitle(sprintf('%.1f%% agreement', perc_correct*100)) +
     cdsr::theme_Publication()
-  ggsave(file.path(fig_dir, sprintf('GE_SNP_agree_tSNE_%s.png', cur_expt$expt_batch)), width = 6, height = 5.5)
+  ggsave(file.path(fig_dir, sprintf('GE_SNP_agree_%s_%s.png', dred, cur_expt$expt_batch)), width = 6, height = 5.5)
   
   results = list(perc_correct = perc_correct)
   return(results)

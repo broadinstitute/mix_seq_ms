@@ -8,6 +8,8 @@ source(here::here('src', 'expt_meta_data.R'))
 source(here::here('src', 'global_params.R'))
 source(here::here('src', 'MixSeq_helpers.R'))
 
+dred <- 'umap'
+
 results_dir <- here::here('data')
 fig_dir <- here::here('figures')
 
@@ -18,8 +20,8 @@ gsc_data$combined <- GSEABase::GeneSetCollection(c(gsc_data$hallmark, gsc_data$c
 
 
 source(here::here('src', 'make_tsne_example_fig.R'))
-make_tsne_example_fig(sc_DE_meta$idasanutlin_24hr_expt1)
-make_tsne_example_fig(sc_DE_meta$trametinib_24hr_expt3)
+make_tsne_example_fig(sc_DE_meta$idasanutlin_24hr_expt1, dred = dred)
+make_tsne_example_fig(sc_DE_meta$trametinib_24hr_expt3, dred = dred)
 
 source(here::here('src', 'make_nutlin_G1_arrest_fig.R'))
 make_nutlin_G1_arrest_fig()
@@ -51,10 +53,10 @@ make_PCA_example_figures(sc_DE_meta$trametinib_24hr_expt3)
 make_PCA_example_figures(sc_DE_meta$Trametinib_expt10)
 
 source(here::here('src', 'make_subclone_response_figs.R'))
-make_subclone_response_figs(sc_DE_meta$trametinib_24hr_expt1, targ_CL = 'IALM_LUNG')
+make_subclone_response_figs(sc_DE_meta$trametinib_24hr_expt1, targ_CL = 'IALM_LUNG', dred = dred)
 
 source(here::here('src', 'make_bortezomib_subpop_figs.R'))
-make_bortezomib_subpop_figs(c('RCC10RGB_KIDNEY', 'SNU1079_BILIARY_TRACT', 'RCM1_LARGE_INTESTINE', 'RERFLCAD1_LUNG', 'TEN_ENDOMETRIUM'))
+make_bortezomib_subpop_figs(c('RCC10RGB_KIDNEY', 'SNU1079_BILIARY_TRACT', 'RCM1_LARGE_INTESTINE', 'RERFLCAD1_LUNG', 'TEN_ENDOMETRIUM'), dred = dred)
 
 source(here::here('src', 'make_dabrafenib_heterogeneity_figs.R'))
 make_dabrafenib_heterogeneity_figs()
@@ -82,6 +84,9 @@ make_global_dimred()
 source(here::here('src', 'predictive_model_compare.R'))
 run_predictive_model_compare()
 make_predictive_model_figs()
+
+source(here::here('src', 'predictive_model_compare_pooled.R'))
+run_predictive_model_compare_pooled()
 
 source(here::here('src', 'make_viability_signature_heatmaps.R'))
 make_viability_signature_heatmaps()

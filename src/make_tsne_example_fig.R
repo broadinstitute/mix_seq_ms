@@ -1,11 +1,13 @@
-make_tsne_example_fig <- function(expt_params) {
+make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
 
   #PARAMS
   show_labels <- FALSE
   vtr <- c()
   fwidth <- 5
   fheight <- 4.5
-
+  #umap params
+  umap_n_neighbors <- 15
+  umap_min_dist <- 1
   
   expt_name <- expt_params$expt_name
   seuObj <- load_sc_data(expt_params, sc_expts)
@@ -41,11 +43,15 @@ make_tsne_example_fig <- function(expt_params) {
                    npcs = n_PCs,
                    verbose = FALSE)
   
-  seuObj <- RunTSNE(object = seuObj, dims = 1:n_PCs, check_duplicates = FALSE, 
-                    seed.use = 0, perplexity = globals$tsne_perplexity)
-  # seuObj <- RunUMAP(object = seuObj, dims = 1:n_PCs, min_dist = 0.7, n_neighbors = 100)
+  if (dred == 'tsne') {
+    seuObj <- RunTSNE(object = seuObj, dims = 1:n_PCs, check_duplicates = FALSE, 
+                      seed.use = 0, perplexity = globals$tsne_perplexity)
+  } else if (dred == 'umap') {
+    seuObj <- RunUMAP(object = seuObj, dims = 1:n_PCs, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors)
+  } else {
+    stop('dred value not accepted')
+  }
   
-  dred <- 'tsne'
   df <- Embeddings(object = seuObj, reduction = dred) %>% 
     as.data.frame() %>% 
     set_colnames(c('t1', 't2')) %>% 
@@ -106,7 +112,7 @@ make_tsne_example_fig <- function(expt_params) {
     geom_point( aes(fill = tcond), pch = 21, size = 0.75, color = 'white', alpha = 0.8, stroke = 0.1) +
     guides(alpha = F, size = F, fill = guide_legend(title = element_blank(), override.aes = list(size = 3))) +
     scale_fill_manual(values = c('darkgray', 'darkred')) + 
-    xlab('tSNE 1') + ylab('tSNE 2') +
+    xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
     geom_segment(data = avgs, aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
                  arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
     cdsr::theme_Publication()
@@ -116,7 +122,7 @@ make_tsne_example_fig <- function(expt_params) {
       geom_text(data = avgs %>% filter(TP53_WT), mapping = aes(x = ct1, y = ct2, label = CL_short), color = 'darkblue', size = 2.5)
     }
   g
-  ggsave(file.path(fig_dir, paste0(expt_name, '_', 'combined_tsne_condcol.png')), width = fwidth, height = fheight, dpi = 400)
+  ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred,'_condcol.png'))), width = fwidth, height = fheight, dpi = 400)
   
   #cell cycle phase example (specifically for nutlin)
   df %<>% dplyr::mutate(Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
@@ -136,7 +142,7 @@ make_tsne_example_fig <- function(expt_params) {
            fill = guide_legend(override.aes = list(size = 3), nrow = 3)
            # color = guide_legend(title = element_blank(), nrow = 2, override.aes = list(size = 3, stroke = 1.5))
            ) +
-    xlab('tSNE 1') + ylab('tSNE 2') +
+    xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
     cdsr::theme_Publication() + 
     cdsr::scale_fill_Publication()+
     theme(legend.text=element_text(size=8)) +
@@ -145,7 +151,7 @@ make_tsne_example_fig <- function(expt_params) {
     geom_segment(data = avgs %>% dplyr::filter(TP53_WT), aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
                arrow = arrow(length = unit(0.2,"cm")), size = 1.25, alpha = 0.75, color = 'red') #619CFF
   g
-  ggsave(file.path(fig_dir, paste0(expt_name, '_', 'combined_tsne_CCP.png')), width = 4.2, height = 4.25)
+  ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred, '_CCP.png'))), width = 4.2, height = 4.25)
 
 }
 
