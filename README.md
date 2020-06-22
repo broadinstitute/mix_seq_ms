@@ -55,3 +55,20 @@ There are two scripts that orchestrate running all analyses and generating figs 
 - make_SNP_class_figs.R: Run all scripts used to generate figures associated with SNP-classification analysis (Fig 1, S1, S2)
 
 - make_figs.R: Run all scripts used to generate the remaining figures.
+
+
+## Packages
+
+The following packages are used in the analysis
+
+- Seurat v3.1.4
+
+- ranger v0.12.1
+
+- limma v3.83.3
+
+- edgeR v3.24.3
+
+- GSEABase v1.44.0
+
+- piano v1.22.0
