@@ -18,7 +18,7 @@ make_singlet_SNP_heatmap <- function() {
   ggplot(df, aes(barcode, name_short)) + 
     geom_tile(aes(fill = dev_ratio)) + 
     scale_fill_gradient(low = "white", high = 'darkblue', name = 'Normalized LL\n(Deviance ratio)') +
-    cdsr::theme_Publication(legend_bottom = TRUE) +
+    theme_Publication(legend_bottom = TRUE) +
     theme(axis.text.x = element_blank(), 
           axis.ticks.x = element_blank(),
           axis.text.y = element_text(size = 6)) +

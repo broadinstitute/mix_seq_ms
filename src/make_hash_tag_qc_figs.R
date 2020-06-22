@@ -49,7 +49,7 @@ make_hash_tag_qc_figs <- function() {
     guides(color = F) + 
     scale_color_manual(values = c(`FALSE` = 'black', `TRUE` = 'green')) +
     ylab('Cell Count') + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 9),
           axis.title.x = element_blank(),
           legend.title = element_blank(),
@@ -91,7 +91,7 @@ make_hash_tag_qc_figs <- function() {
          aes(t1, t2)) + 
     geom_point(data = . %>% dplyr::filter(hash_tag != 'multiplet'), aes(fill = hash_tag), size = 0.5, alpha = 0.75, size = 2, pch = 21, stroke = 0.1, color = 'white') + 
     geom_point(data = . %>% dplyr::filter(hash_tag == 'multiplet'), pch = 21, size = 1, fill = 'darkgray', color = 'white', stroke = 0.1) +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     xlim('tSNE 1') + ylab('tSNE 2') +
     guides(fill = guide_legend(override.aes = list(size = 2), nrow = 4)) +
     theme(legend.text = element_text(size = 9),

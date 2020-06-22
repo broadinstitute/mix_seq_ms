@@ -10,12 +10,7 @@ make_dabrafenib_heterogeneity_figs <- function() {
   
   CL_annotations <- all_CL_features[[cur_expt$expt_name]]
   #merge in primary site annotations
-  CL_meta = load.from.taiga(
-    data.name='master-cell-line-export-0306',
-    data.version=435, 
-    data.file='masterfile_2019-09-23') %>% 
-    dplyr::select(DEPMAP_ID = DepMap_ID, Disease, Subtype = 'Disease Subtype') %>% 
-    dplyr::distinct(DEPMAP_ID, .keep_all=T)
+  CL_meta <- all_CL_features$metadata
   CL_annotations %<>% left_join(CL_meta, by = 'DEPMAP_ID')
   CL_annotations %<>% 
     dplyr::mutate(BRAF_mel = ifelse((BRAF_MUT > 0) & (Subtype == 'melanoma'), TRUE, FALSE))
@@ -39,7 +34,7 @@ make_dabrafenib_heterogeneity_figs <- function() {
                               aes(label = Gene), 
                               size = 2) +
     scale_color_gradient(limits = c(0, 8) ,oob = scales::squish, breaks = c(0, 5), low = 'darkgrey', high = 'red') +
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_%s_dabrafenib_compare.png', CL1, CL2)),
          width = 4, height = 4)
 

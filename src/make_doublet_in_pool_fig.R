@@ -23,7 +23,7 @@ make_doublet_in_pool_fig <- function() {
   ggplot(cnts, aes(cell_quality)) + 
     geom_bar(aes(y = n, group = both_in_pool, fill = both_in_pool), stat = 'identity') +
     geom_text(data = fracs, size=3.5, aes(y = tot, label = paste0(round(pp, 1), ' %')), vjust = 0, size = 3.5) +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           axis.title.x = element_blank()) +
     ylab('Number of cells') +

@@ -20,7 +20,7 @@ make_example_MOA_plots <- function() {
                      aes(label = Gene),
                      size = 2.5) +
     xlab('Avg logFC') +
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
   
@@ -44,7 +44,7 @@ make_example_MOA_plots <- function() {
                      aes(label = Gene),
                      size = 2.5) +
     xlab('Avg logFC') +
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
   
@@ -67,7 +67,7 @@ make_example_MOA_plots <- function() {
                      aes(label = Gene),
                      size = 2.5) +
     xlab('Avg logFC') +
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
   

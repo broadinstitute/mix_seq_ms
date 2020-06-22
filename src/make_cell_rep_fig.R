@@ -17,11 +17,11 @@ make_cell_rep_fig <- function(cur_expt) {
     dplyr::mutate(CCLE_ID = factor(CCLE_ID, levels = cord)) %>% 
     ggplot(aes(CCLE_ID, cells, fill = condition)) + 
     geom_bar(stat = 'identity') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank()) +
     xlab('Cell Line') +
-    # cdsr::scale_fill_Publication() 
+    # scale_fill_Publication() 
     scale_fill_manual(values = c('darkgray', 'darkred')) 
     
   ggsave(file.path(fig_dir, sprintf('%s_cell_rep.png', cur_expt$expt_name)),

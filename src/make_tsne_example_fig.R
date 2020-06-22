@@ -115,7 +115,7 @@ make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
     xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
     geom_segment(data = avgs, aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
                  arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
-    cdsr::theme_Publication()
+    theme_Publication()
   if (expt_params$drug_name == 'idasanutlin') {
     g <- g + geom_point(data = avgs, mapping = aes(x = ct1, y = ct2), size = 0, alpha = 0) + 
       geom_text(data = avgs %>% filter(!TP53_WT), mapping = aes(x = ct1, y = ct2, label = CL_short), color = 'black', size = 2.5) +
@@ -143,8 +143,8 @@ make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
            # color = guide_legend(title = element_blank(), nrow = 2, override.aes = list(size = 3, stroke = 1.5))
            ) +
     xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
-    cdsr::theme_Publication() + 
-    cdsr::scale_fill_Publication()+
+    theme_Publication() + 
+    scale_fill_Publication()+
     theme(legend.text=element_text(size=8)) +
     geom_segment(data = avgs %>% dplyr::filter(!TP53_WT), aes(x = ct1, y = ct2, xend = tt1, yend = tt2),
                   arrow = arrow(length = unit(0.2,"cm")), size = 0.75, alpha = 0.75, color = 'black') + #F8766D

@@ -150,9 +150,9 @@ make_predictive_model_figs <- function() {
     xlab('Baseline features\n(R2)') +
     ylab('Transcriptional responses\n(R2)') +
     guides(color = F) + 
-    cdsr::theme_Publication() +
-    cdsr::scale_color_Publication() +
-    cdsr::scale_fill_Publication()
+    theme_Publication() +
+    scale_color_Publication() +
+    scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_all.png'), width = 4, height = 4)
   
   with(pmod_results_wide, {
@@ -170,9 +170,9 @@ make_predictive_model_figs <- function() {
     xlab('Baseline features\n(R2)') +
     ylab('Transcriptional responses\n(R2)') +
     guides(color = F) + 
-    cdsr::theme_Publication() +
-    cdsr::scale_color_Publication() +
-    cdsr::scale_fill_Publication()
+    theme_Publication() +
+    scale_color_Publication() +
+    scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_matched.png'), width = 4, height = 4)
   
   n_results_wide <- 
@@ -190,9 +190,9 @@ make_predictive_model_figs <- function() {
     xlab('LFC sample size') +
     ylab('Prediction accuracy diff.\n(LFC_R2 - Baseline_R2)') +
     guides(color = F) + 
-    cdsr::theme_Publication() 
-    # cdsr::scale_color_Publication() +
-    # cdsr::scale_fill_Publication()
+    theme_Publication() 
+    # scale_color_Publication() +
+    # scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_diff_vs_n.png'), width = 4, height = 4)
   
 }

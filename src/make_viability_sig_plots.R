@@ -25,7 +25,7 @@ make_viability_sig_plots <- function(cur_expt) {
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
     xlab(TeX('$\\beta_0')) +
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_int_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
   
@@ -38,7 +38,7 @@ make_viability_sig_plots <- function(cur_expt) {
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
     xlab(TeX('$\\beta_1')) +
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_slope_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
 
@@ -51,7 +51,7 @@ make_viability_sig_plots <- function(cur_expt) {
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
     xlab('Avg logFC') +
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
     
@@ -88,7 +88,7 @@ make_viability_sig_plots <- function(cur_expt) {
       geom_vline(xintercept = 0, linetype = 'dashed') +
       xlab(sprintf('%s sensitivity', cur_expt$drug_name)) + 
       ylab(sprintf('%s LFC', cur_gene)) +
-      cdsr::theme_Publication()
+      theme_Publication()
     ggsave(file.path(fig_dir, sprintf('%s_%s_sens_LFC_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
     
     # ggplot(cur_df, aes(sens, baseline)) + 
@@ -98,7 +98,7 @@ make_viability_sig_plots <- function(cur_expt) {
     #   geom_vline(xintercept = 0, linetype = 'dashed') +
     #   xlab(sprintf('%s sensitivity', cur_expt$drug_name)) + 
     #   ylab(sprintf('%s GE', cur_gene)) +
-    #   cdsr::theme_Publication()
+    #   theme_Publication()
     # ggsave(file.path(fig_dir, sprintf('%s_%s_sens_baseline_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
     # 
     # ggplot(cur_df, aes(baseline, LFC)) + 
@@ -108,7 +108,7 @@ make_viability_sig_plots <- function(cur_expt) {
     #   geom_vline(xintercept = 0, linetype = 'dashed') +
     #   xlab(sprintf('%s GE', cur_gene)) + 
     #   ylab(sprintf('%s LFC', cur_gene)) +
-    #   cdsr::theme_Publication()
+    #   theme_Publication()
     # ggsave(file.path(fig_dir, sprintf('%s_%s_baseline_LFC_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
   }
   if (cur_expt$expt_name == 'Trametinib_24hr_expt3') {

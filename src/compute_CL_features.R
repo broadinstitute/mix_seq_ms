@@ -3,8 +3,10 @@ library(tidyverse)
 library(taigr)
 library(here)
 
+source(here::here('src', 'global_params.R'))
 source(here::here('src', 'MixSeq_helpers.R'))
 source(here::here('src', 'expt_meta_data.R'))
+
 results_dir <- here::here('data')
 
 #OMICS data
@@ -198,6 +200,26 @@ all_CL_features <- llply(sc_DE_meta, function(cur_expt) {
   CL_df %<>% full_join(get_omics_features(cur_expt$annotate_omics), by = "DEPMAP_ID")
   CL_df %<>% full_join(in_pool_df, by = 'DEPMAP_ID') 
   CL_df %<>% dplyr::mutate(in_pool = ifelse(is.na(in_pool), FALSE, in_pool))
+  CL_df %<>% dplyr::mutate(CCLE_ID = celllinemapr::arxspan.to.ccle(DEPMAP_ID))
   return(CL_df)
 }) %>% set_names(sapply(sc_DE_meta, function(x) x$expt_name))
+
+# Add GPX4 dependency binary calls
+#load GPX4 dependency data
+gene.dep <- load.from.taiga(data.name='avana-public-19q3-0900', data.version=5, data.file='gene_dependency') %>% 
+  cdsr::extract_hugo_symbol_colnames() 
+GPX4_dep <- gene.dep[, 'GPX4', drop=F] %>%
+  as.data.frame() %>%
+  rownames_to_column(var = 'DEPMAP_ID')
+all_CL_features$GPX4 %<>% dplyr::full_join(GPX4_dep %>% dplyr::select(DEPMAP_ID, CRISPR_GPX4_DEP = GPX4), by = 'DEPMAP_ID')
+
+#add in metadata from master file
+CL_meta = load.from.taiga(
+  data.name='master-cell-line-export-0306',
+  data.version=435, 
+  data.file='masterfile_2019-09-23') %>% 
+  dplyr::select(DEPMAP_ID = DepMap_ID, CCLE_ID = CCLE_name, Disease, Subtype = 'Disease Subtype') %>% 
+  dplyr::distinct(DEPMAP_ID, .keep_all=T)
+all_CL_features$metadata <- CL_meta
+
 write_rds(all_CL_features, file.path(results_dir, 'all_CL_features.rds'))

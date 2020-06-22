@@ -95,7 +95,7 @@ make_bortezomib_heterogeneity_figs <- function() {
                      size = 2.5, label.padding = 0.2) +
     geom_vline(xintercept = 0, linetype = 'dashed') +
     geom_hline(yintercept = 0, linetype = 'dashed') +
-    cdsr::theme_Publication()
+    theme_Publication()
 
   ggsave(file.path(fig_dir,'bortezomib_volcano.png'), width = 4, height = 4, plot = volcano)
 

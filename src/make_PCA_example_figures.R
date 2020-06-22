@@ -7,12 +7,7 @@ make_PCA_example_figures <- function(cur_expt) {
   CL_annotations <- all_CL_features[[cur_expt$expt_name]]
   
   #merge in primary site annotations
-  CL_meta = load.from.taiga(
-    data.name='master-cell-line-export-0306',
-    data.version=435, 
-    data.file='masterfile_2019-09-23') %>% 
-    dplyr::select(DEPMAP_ID = DepMap_ID, Disease, Subtype = 'Disease Subtype') %>% 
-    dplyr::distinct(DEPMAP_ID, .keep_all=T)
+  CL_meta <- all_CL_features$metadata
   CL_annotations %<>% left_join(CL_meta, by = 'DEPMAP_ID')
   
   #call BRAF-mut melanomas
@@ -33,7 +28,7 @@ make_PCA_example_figures <- function(cur_expt) {
     geom_point(alpha = 0.7) +
     ylab('Std. Dev.') +
     xlab('Component rank') +
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, sprintf('%s_screeplot.png', cur_expt$expt_name)),
          width = 2.5, height = 2.)
   
@@ -82,7 +77,7 @@ make_PCA_example_figures <- function(cur_expt) {
   ggplot(df, aes(PC1, 1-AUC_avg)) + 
     geom_point(cur_aes, alpha = 0.75, pch = 21, size = 3) + 
     geom_smooth(method = 'lm') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('Sensitivity (1-AUC)') +
     guides(fill = FALSE)
     # guides(fill = guide_legend(title = element_blank()))
@@ -92,19 +87,20 @@ make_PCA_example_figures <- function(cur_expt) {
   if (cur_expt$drug_name == 'trametinib') {
     ggplot(df, aes(PC1, PC2, fill = type)) + 
       geom_point(alpha = 0.75, color = 'black', pch = 21, size = 3) +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       guides(fill = guide_legend(nrow = 2, title = element_blank()))
     ggsave(file.path(fig_dir, sprintf('%s_PC_scatter.png', cur_expt$expt_name)), width = 3, height = 3)
     
     #plot PC2 vs SOX10 expression
     GE <- load.from.taiga(data.name='depmap-rnaseq-expression-data-ccd0', data.version=14, data.file='CCLE_depMap_19Q3_TPM_ProteinCoding') %>%
       cdsr::extract_hugo_symbol_colnames()
+    
     df %<>% left_join(data_frame(DEPMAP_ID = rownames(GE), SOX10_GE = GE[, 'SOX10']), by = 'DEPMAP_ID')
     df %<>% mutate(melanoma = ifelse(Subtype == 'melanoma', 'melanoma', 'other'))
     ggplot(df, aes(PC2, SOX10_GE, fill = type)) + 
       geom_point(data = df %>% filter(melanoma == 'other'), alpha = 0.75, color = 'black', pch = 21, size = 3) +
       geom_point(data = df %>% filter(melanoma == 'melanoma'), alpha = 0.75, color = 'black', pch = 21, size = 3, stroke = 2.5) +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       ylab('SOX10 expression\n(log2 TPM)') +
       # scale_fill_manual(values = c(other = 'darkgray', melanoma = 'red')) +
       guides(fill = FALSE)

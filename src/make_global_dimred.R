@@ -132,7 +132,7 @@ make_global_dimred <- function() {
     scale_fill_manual(values = cols) +
     scale_color_manual(values = cols) + 
     geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.5, label.padding = 0.1) +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     geom_rect(xmin = zoom_x[1], xmax = zoom_x[2], ymin = zoom_y[1], ymax = zoom_y[2], 
               fill = NA, color = 'black', lwd = 0.2)
   ggsave(file.path(fig_dir, 'full_LFC_umap_treat.png'), plot = g, width = 5, height = 4)
@@ -158,7 +158,7 @@ make_global_dimred <- function() {
     scale_color_manual(values = cols) +
     scale_fill_manual(values = cols) +
     # geom_text(data = avgs_z, aes(label = drug_time, color = drug_time), size = 4) +
-    cdsr::theme_Publication()  +
+    theme_Publication()  +
     theme_void() +
     theme(axis.title.x = element_blank(), axis.title.y = element_blank(),
           axis.text.x = element_blank(), axis.text.y = element_blank()) +
@@ -172,7 +172,7 @@ make_global_dimred <- function() {
     geom_point(aes(fill = sens, text = sprintf('%s\n%s\n%.3f', drug_time, CCLE_ID, sens)), color = 'white', stroke = 0.1, pch = 21, size = 1.8) +
     guides(color = F, fill = guide_colorbar(title = 'sensitivity')) +
     # geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
-    cdsr::theme_Publication()  +
+    theme_Publication()  +
     theme(legend.key.width = unit(1.25, 'cm')) +
     scale_color_manual(values = cols) +
     scale_fill_gradient(limits = sens_clims, oob = scales::squish) 

@@ -49,9 +49,9 @@ make_oop_classification_fig <- function() {
     geom_bar(stat = 'identity', color = 'black', width = 0.8, lwd = 1) +
     geom_errorbar(aes(color = pool, ymax = err_ub, ymin = err_lb), width = 0.4, lwd = 0.5) +
     # ylim(-0.01, 0.01) +
-    cdsr::theme_Publication() + 
-    cdsr::scale_fill_Publication() + 
-    cdsr::scale_color_Publication() +
+    theme_Publication() + 
+    scale_fill_Publication() + 
+    scale_color_Publication() +
     ylab('Error rate') +
     xlab('Experiment') +
     theme(axis.text.x = element_blank(),

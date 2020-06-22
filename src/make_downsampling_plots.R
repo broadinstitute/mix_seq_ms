@@ -53,7 +53,7 @@ mkae_downsampling_plots <- function(fig_dir) {
     ggplot2::geom_histogram(fill="#666666", color='#333333') +
     ggplot2::scale_x_continuous(limits=c(8, 1350), trans='log2') +
     ggplot2::xlab("number of SNPs") +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(size=3), axis.title = ggplot2::element_text(size=4), 
                                       axis.text.y = ggplot2::element_text(size=3))
   
@@ -66,7 +66,7 @@ mkae_downsampling_plots <- function(fig_dir) {
     ggplot2::xlab("mean number of SNPs") +
     #geom_errorbar(aes(ymin=error_rate_min, ymax=error_rate_max)) +
     ggplot2::geom_line(size=0.1) +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(size=3), axis.title = ggplot2::element_text(size=4), 
                                       axis.text.y = ggplot2::element_text(size=3))
   

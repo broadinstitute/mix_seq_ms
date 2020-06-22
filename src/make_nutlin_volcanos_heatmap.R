@@ -45,7 +45,7 @@ make_nutlin_volcanos_heatmap <- function() {
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_vline(xintercept = c(-LFC_thresh, LFC_thresh), linetype = 'dashed', size = 0.25) + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     xlim(min_val, max_val) +
     ggtitle('TP53 WT')
   
@@ -58,7 +58,7 @@ make_nutlin_volcanos_heatmap <- function() {
     geom_vline(xintercept = 0, linetype = 'dashed') + 
     geom_vline(xintercept = c(-LFC_thresh, LFC_thresh), linetype = 'dashed', size = 0.25) + 
     geom_hline(yintercept = 0, linetype = 'dashed') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     xlim(min_val, max_val) +
     ggtitle('TP53 Mutant')
   ggsave(file.path(fig_dir, 'nutlin_TP53WT_avg_volcano.png'), width = 4, height = 3.5, plot = g_WT)

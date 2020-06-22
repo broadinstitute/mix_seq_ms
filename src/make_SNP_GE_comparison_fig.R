@@ -142,7 +142,7 @@ make_SNP_GE_comparison_fig <- function(expt_batch, dred) {
     guides(color = F) +
     xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
     # ggtitle(sprintf('%.1f%% agreement', perc_correct*100)) +
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, sprintf('GE_SNP_agree_%s_%s.png', dred, cur_expt$expt_batch)), width = 6, height = 5.5)
   
   results = list(perc_correct = perc_correct)

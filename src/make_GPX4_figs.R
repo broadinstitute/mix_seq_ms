@@ -32,7 +32,7 @@ make_GPX4_figs <- function() {
     geom_violin(aes(fill = condition), alpha = 0.5) +
     ggbeeswarm::geom_beeswarm(size = 0.1, alpha = 0.6) +
     guides(fill = FALSE) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('GPX4 expression (log2CPM)') +
     theme(axis.text.x = element_text(angle = 80, hjust = 1),
           axis.title.x = element_blank(),
@@ -54,7 +54,7 @@ make_GPX4_figs <- function() {
     xlim(2, 5.75) + ylim(2, 5.75) + 
     xlab('Control GPX4 expression\n(logCPM)') + 
     ylab('Post-KO GPX4 expression\n(logCPM)') + 
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, 'GPX4_expression_scatter.png'), width = 3.5, height = 3)
   
   #barplot of GPX4 LFC across cell lines
@@ -67,7 +67,7 @@ make_GPX4_figs <- function() {
   aa %<>% dplyr::mutate(singlet_ID = factor(singlet_ID, levels = aa %>% arrange((LFC)) %>% .[['singlet_ID']])) 
   ggplot(aa, aes(singlet_ID, LFC)) + 
     geom_bar(stat = 'identity', width = 0.7, fill = 'darkred') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     geom_hline(yintercept = 0, lwd = 1) + 
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank()) +
@@ -91,18 +91,14 @@ make_GPX4_figs <- function() {
                      label.padding = 0.15) +
     geom_point(data = . %>% dplyr::filter(Gene == 'GPX4'), color = 'red', size = 2, alpha = 1) +
     geom_vline(xintercept = 0, linetype = 'dashed') + 
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, 'GPX4_avg_volcano.png'),
          width = 3.5, height = 3.5)
   
   #Now compare response in dependent vs non-dependent lines
-  #load GPX4 dependency data
-  gene.dep <- load.from.taiga(data.name='avana-public-19q3-0900', data.version=5, data.file='gene_dependency') %>% 
-    cdsr::extract_hugo_symbol_colnames() %>% 
-    cdsr::map_arxspan_to_ccle()
-  GPX4_dep <- gene.dep[, 'GPX4', drop=F] %>%
-    as.data.frame() %>%
-    rownames_to_column(var = 'CCLE_ID')
+  GPX4_dep <- all_CL_features[[cur_expt$expt_name]] %>% 
+    dplyr::filter(!is.na(CRISPR_GPX4_DEP)) %>% 
+    dplyr::select(CCLE_ID, DEPMAP_ID, GPX4 = CRISPR_GPX4_DEP)
   
   dat <- load_collapsed_profiles(cur_expt, results_dir, type = 'sum')
   all_CLs <- unique(dat$sample_info$CCLE_ID)
@@ -128,7 +124,7 @@ make_GPX4_figs <- function() {
                      color = 'red',
                      size = 2.5) +
     geom_vline(xintercept = 0, linetype = 'dashed') + 
-    cdsr::theme_Publication() 
+    theme_Publication() 
   ggsave(file.path(fig_dir, 'GPX4_dep_diff_volcano.png'),
          width = 3.5, height = 3)
   

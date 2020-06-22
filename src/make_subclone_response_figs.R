@@ -103,7 +103,7 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
     #   geom_point(aes(fill = tcond), size = 2, pch = 21, color = 'white', stroke = 0.1, alpha = 0.75) +
     #   xlab('tSNE 1') + ylab('tSNE 2') +
     #   scale_fill_manual(values = c('darkgray', 'indianred4')) +
-    #   cdsr::theme_Publication() +
+    #   theme_Publication() +
     #   geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
     #   geom_segment(data = seg_avgs, aes(x = tSNE_1, y = tSNE_2, xend = tSNE_t1, yend = tSNE_t2),
     #                arrow = arrow(length = unit(0.2,"cm")), size = 0.75) +
@@ -114,12 +114,12 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
     ggplot(df, aes(t1, t2)) +
       geom_point(aes(size = tcond, fill = Phase, stroke = tcond), pch = 21, alpha = 0.8) +
       xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
-      cdsr::scale_fill_Publication() +
+      scale_fill_Publication() +
       scale_color_manual(values = c('darkgray', 'indianred4')) +
       scale_size_manual(values = c(1.25, 2.75)) +
       # scale_alpha_manual(values = c(0.6, 0.75)) +
       scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 0.75)) +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       geom_text(data = avgs, aes(x = t1, y = t2, label = cluster_label), size = 7) +
       geom_segment(data = seg_avgs, aes(x = t1, y = t2, xend = t1e, yend = t2e),
                    arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
@@ -135,10 +135,10 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
     # ggplot(df %>% filter(tcond == 'DMSO'), aes(tSNE_1, tSNE_2)) +
     #   geom_point(aes(color = tcond, fill = Phase, stroke = tcond), pch = 21, size = 2.25, alpha = 0.75) +
     #   xlab('tSNE 1') + ylab('tSNE 2') +
-    #   cdsr::scale_fill_Publication() +
+    #   scale_fill_Publication() +
     #   scale_color_manual(values = c('darkgray', 'indianred4')) +
     #   scale_discrete_manual(aesthetics = "stroke", values = c(0.5, 1)) +
-    #   cdsr::theme_Publication() +
+    #   theme_Publication() +
     #   geom_text(data = avgs, aes(x = tSNE_1, y = tSNE_2, label = cluster_label), size = 7) +
     #    coord_cartesian(clip = 'off') +
     #   guides(stroke = FALSE,
@@ -213,7 +213,7 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
       scale_fill_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
       scale_color_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
       guides(color = F) +
-      cdsr::theme_Publication() 
+      theme_Publication() 
     ggsave(file.path(fig_dir, sprintf('%s_%s_cluster_diffLFC.png', targ_CL, expt$expt_name)), width = 3, height = 3)
     
     tt_CL2_CL1 %>% 
@@ -224,7 +224,7 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
                        size = 2.5) +
       geom_vline(xintercept = 0, linetype = 'dashed') + 
       geom_hline(yintercept = 0, linetype = 'dashed') +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       scale_color_manual(values = c(`FALSE` = 'black', `TRUE` = 'darkred'))
     ggsave(file.path(fig_dir, sprintf('%s_%s_baseline_cluster_volcano.png', targ_CL, expt$expt_name)),
            width = 4, height = 3.5)
@@ -242,7 +242,7 @@ make_subclone_response_figs <- function(expt, targ_CL, dred = 'umap') {
                        size = 2.5) +
       geom_vline(xintercept = 0, linetype = 'dashed') + 
       geom_hline(yintercept = 0, linetype = 'dashed') +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       scale_color_manual(values = c(`FALSE` = 'black', `TRUE` = 'darkred'))
     ggsave(file.path(fig_dir, sprintf('%s_%s_diff_cluster_volcano.png', targ_CL, expt$expt_name)),
            width = 4, height = 3.5)

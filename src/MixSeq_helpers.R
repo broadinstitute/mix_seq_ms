@@ -411,7 +411,7 @@ relabel_cell_cycle_phase <- function(seuDat) {
 
 
 
-# MODE FITTING ------------------------------------------------------------
+# MODEL FITTING ------------------------------------------------------------
 
 # Takes a list of predictor sets and cbinds to a single predictor matrix
 proc_list_data <- function(X_list, used_CLs) {
@@ -748,6 +748,45 @@ compare_CL_responses <- function(seuDat, CL1, CL2, min_frac_cells_det = 0.05, pr
 }
 
 
+#' Run set overlap test using piano 'runGSAhyper' function
+#'
+#' @param hit_genes list of genes scoring as hits
+#' @param all_genes list of all genes tested
+#' @param gsc gene set collection as gene-set collection object
+#' @param gsSizeLim 2x1 vector of size limits on the gene sets (defaults to c(1,Inf))
+#' @param adjMethod Method for p-valuea adjustment (from available in p.adjust, default = 'BH')
+#'
+#' @return Table of stats for all gene sets in collection
+#' @export
+#'
+#' @examples
+run_GSAhyper <- function(hit_genes, all_genes, gsc, gsSizeLim = c(1, Inf), adjMethod = 'BH') {
+  library(piano)
+  library(GSEABase)
+  library(tibble)
+  gsc_obj <- GSEABase::geneIds(gsc)
+  gs_names <- do.call(c, sapply(names(gsc_obj), function(name) {
+    rep(name, length(gsc_obj[[name]]))
+  }))
+  gsc <- data.frame(gene = unlist(gsc_obj), gene_set = gs_names)
+  
+  res <- runGSAhyper(genes = hit_genes,
+                     universe = all_genes,
+                     gsc = loadGSC(gsc),
+                     gsSizeLim = gsSizeLim,
+                     adjMethod = adjMethod) %>%
+    .[['resTab']] %>%
+    data.frame(check.names=FALSE) %>%
+    tibble::rownames_to_column(var = 'gene_set') %>%
+    mutate(
+      set_size = `Significant (in gene set)` + `Non-significant (in gene set)`,
+      prob_in_set = `Significant (in gene set)` / (`Significant (in gene set)` + `Non-significant (in gene set)`),
+      prob_not_in_set = `Significant (not in gene set)` / (`Significant (not in gene set)` + `Non-significant (not in gene set)`),
+      odds_ratio = (prob_in_set / (1 - prob_in_set)) / (prob_not_in_set / (1 - prob_not_in_set))
+    ) %>%
+    dplyr::select(-prob_in_set, -prob_not_in_set)
+  return(res)
+}
 
 
 ###------------------------- PLOTTING -----------------------------------
@@ -785,10 +824,10 @@ make_hyper_gsa_plot <- function(gene_stat, gsc, top_n = 50, lfc_thresh = NULL, g
     universe <- names(gene_stat)
   }
   if (dir == 'up' | dir == 'both') {
-    cur_up_GSEA <- cdsr::run_GSAhyper(top_up_hits, universe, gsc, gsSizeLim = gsSizeLim)
+    cur_up_GSEA <- run_GSAhyper(top_up_hits, universe, gsc, gsSizeLim = gsSizeLim)
   }
   if (dir == 'down' | dir == 'both') {
-    cur_down_GSEA <- cdsr::run_GSAhyper(top_down_hits, universe, gsc, gsSizeLim = gsSizeLim) 
+    cur_down_GSEA <- run_GSAhyper(top_down_hits, universe, gsc, gsSizeLim = gsSizeLim) 
   }
   if (return_stats) {
     stats_return <- list(up_GSEA = cur_up_GSEA, down_GSEA = cur_down_GSEA)
@@ -830,7 +869,7 @@ make_hyper_gsa_plot <- function(gene_stat, gsc, top_n = 50, lfc_thresh = NULL, g
                   aes(label = gene_set), 
                   angle = 0, vjust = -0.5, hjust = 0, nudge_y = -0., size = lab_size) +
         # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-        cdsr::theme_Publication() + 
+        theme_Publication() + 
         ylab('-log10(p-value)') +
         ylim(0, pmax) +
         # xlab('gene set') +
@@ -855,7 +894,7 @@ make_hyper_gsa_plot <- function(gene_stat, gsc, top_n = 50, lfc_thresh = NULL, g
                   aes(label = gene_set), 
                   angle = 0, vjust = -0.5, hjust = 1, nudge_y = -0., size = lab_size) +
         # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-        cdsr::theme_Publication() + 
+        theme_Publication() + 
         ylab('-log10(p-value)') +
         xlab('gene set') +
         scale_color_manual(values = c(down = 'darkblue', up = 'darkred')) +
@@ -904,7 +943,7 @@ make_stem_plot_precom <- function(cur_up_GSEA, cur_down_GSEA, n_lab_per = 10, la
               aes(label = gene_set), 
               angle = 0, vjust = -0.5, hjust = 0, nudge_y = -0., size = lab_size) +
     # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-    cdsr::theme_Publication() + 
+    theme_Publication() + 
     ylab('-log10(p-value)') +
     ylim(0, pmax) +
     # xlab('gene set') +
@@ -927,7 +966,7 @@ make_stem_plot_precom <- function(cur_up_GSEA, cur_down_GSEA, n_lab_per = 10, la
               aes(label = gene_set), 
               angle = 0, vjust = -0.5, hjust = 1, nudge_y = -0., size = lab_size) +
     # geom_vline(xintercept = n_gene_sets + 0.5, linetype = 'dashed') +
-    cdsr::theme_Publication() + 
+    theme_Publication() + 
     ylab('-log10(p-value)') +
     xlab('gene set') +
     ylim(0, pmax) +
@@ -1033,5 +1072,79 @@ make_LFC_heatmap <- function(LFC_mat,
 }
 
 
+#' Set publication theme on ggplot object
+#'
+#' @param base_size
+#' @param base_family
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' TAKEN FROM Koundinya Desiraju:https://rpubs.com/Koundy/71792
+theme_Publication <- function(base_size=12, base_family="Helvetica", base_face = 'bold', legend_bottom = TRUE) {
+  library(grid)
+  library(ggthemes)
+  library(ggplot2)
+  if (legend_bottom) {
+    loc <- 'bottom'
+    orientation <- 'horizontal'
+  } else {
+    loc <- 'right'
+    orientation <- 'vertical'
+  }
+  (theme_foundation(base_size=base_size, base_family=base_family)
+    + theme(plot.title = element_text(face = base_face,
+                                      size = rel(1.2), hjust = 0.5),
+            text = element_text(),
+            panel.background = element_rect(colour = NA),
+            plot.background = element_rect(colour = NA),
+            panel.border = element_rect(colour = NA),
+            axis.title = element_text(face = base_face,size = rel(1)),
+            axis.title.y = element_text(angle=90,vjust =2),
+            axis.title.x = element_text(vjust = -0.2),
+            axis.text = element_text(),
+            axis.line = element_line(colour="black"),
+            axis.ticks = element_line(),
+            panel.grid.major = element_line(colour="#f0f0f0"),
+            panel.grid.minor = element_blank(),
+            legend.key = element_rect(colour = NA),
+            legend.position = loc,
+            legend.text = element_text(size = rel(1.2)),
+            legend.direction = orientation,
+            legend.key.size= unit(0.3, "cm"),
+            legend.spacing = unit(0, "cm"),
+            legend.title = element_text(face="italic"),
+            plot.margin=unit(c(5,5,5,5),"mm"),
+            strip.background=element_rect(colour="#f0f0f0",fill="#f0f0f0"),
+            strip.text = element_text(face=base_face)
+    ))
+  
+}
+#' Set publication fill scheme
+#'
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+scale_fill_Publication <- function(...){
+  library(scales)
+  discrete_scale("fill","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+}
+
+#' Set publication color scheme
+#'
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+scale_color_Publication <- function(...){
+  library(scales)
+  discrete_scale("colour","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+}
 
 

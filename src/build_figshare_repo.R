@@ -6,12 +6,6 @@ source(here::here('src', 'expt_meta_data.R'))
 out_dir <- '~/CPDS/mix_seq_figshare'
 
 all_CL_features <- read_rds(file.path(here::here('data', 'all_CL_features.rds')))
-#update so have CCLE IDs for all cell lines
-update_CCLE_IDs <- function(df) {
-  df %<>% mutate(CCLE_ID = celllinemapr::arxspan.to.ccle(DEPMAP_ID))
-  return(df)
-}
-all_CL_features %<>% map(update_CCLE_IDs)
 write_rds(all_CL_features, file.path(out_dir, 'all_CL_features.rds'))
 
 for (cur_expt in sc_expts) {

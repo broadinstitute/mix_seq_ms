@@ -61,7 +61,7 @@ make_trametinib_tc_figs <- function() {
       geom_point(data = avgs, size = 3, alpha = 0.75, color = 'red') + 
       geom_errorbar(data = avgs, aes(ymax = GE + SEM, ymin = GE - SEM), alpha = 0.75, color = 'red', width = 0.2) + 
       geom_line(data = avgs, aes(group = 1)) +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 12),
             axis.title.x = element_blank()) +
       scale_fill_manual(values = cond_col_pal) +
@@ -143,7 +143,7 @@ make_trametinib_tc_figs <- function() {
     geom_point(data = df %>% filter(hash_tag != 'unknown', !is.na(time_point)), aes(fill = time_point), pch = 21, size = 0.75, color = 'gray', alpha = 0.8, stroke = 0.1) +
     scale_fill_brewer(palette = 1, type = 'seq') +
     geom_text(data = avgs, mapping = aes(x = ct1, y = ct2, label = short_name), fontface = 'bold', color = 'black', size = 2.) + 
-    cdsr::theme_Publication() + 
+    theme_Publication() + 
     xlab('UMAP 1') +
     ylab('UMAP 2') +
     guides(fill = guide_legend(override.aes = list(size = 3)))
@@ -314,7 +314,7 @@ make_trametinib_tc_figs <- function() {
     labs(x = 'Effect Size (sum-collapse)',
          y = 'Effect Size (mean-collapse)') +
     ggpubr::stat_cor() + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     facet_wrap(~condition) +
     ggtitle('Viability related')
   ggsave(file.path(fig_dir, 'tc_slope_sum_mean_compare.png'), width = 6, height = 5)
@@ -329,7 +329,7 @@ make_trametinib_tc_figs <- function() {
     labs(x = 'Effect Size (sum-collapse)',
          y = 'Effect Size (mean-collapse)') +
     ggpubr::stat_cor() + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     facet_wrap(~condition) +
     ggtitle('Viability independent')
   ggsave(file.path(fig_dir, 'tc_int_sum_mean_compare.png'), width = 6, height = 5)
@@ -438,10 +438,10 @@ make_trametinib_tc_figs <- function() {
         .[['Gene']] %>% 
         as.character()
       rbind(
-        cdsr::run_GSAhyper(cur_hits_down, all_genes, gsc) %>% 
+        run_GSAhyper(cur_hits_down, all_genes, gsc) %>% 
           dplyr::mutate(condition = cur_cond,
                  direction = 'down'),
-        cdsr::run_GSAhyper(cur_hits_up, all_genes, gsc) %>% 
+        run_GSAhyper(cur_hits_up, all_genes, gsc) %>% 
           dplyr::mutate(condition = cur_cond,
                  direction = 'up')
       )
@@ -462,7 +462,7 @@ make_trametinib_tc_figs <- function() {
     ggplot(aes(condition, enrich, group = gset_dir)) +
     geom_line() +
     geom_point(size = 3) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           legend.text = element_text(size = 9)) +
     geom_hline(yintercept = 0, linetype = 'dashed') + 
@@ -478,7 +478,7 @@ make_trametinib_tc_figs <- function() {
     ggplot(aes(condition, enrich, group = gset_dir)) +
     geom_line() +
     geom_point(size = 3) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           legend.text = element_text(size = 9)) +
     geom_hline(yintercept = 0, linetype = 'dashed') + 
@@ -499,7 +499,7 @@ make_trametinib_tc_figs <- function() {
     ggplot(aes(condition, enrich, group = gset_dir)) +
     geom_line() +
     geom_point(size = 3) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           legend.text = element_text(size = 9)) +
     geom_hline(yintercept = 0, linetype = 'dashed') + 
@@ -515,7 +515,7 @@ make_trametinib_tc_figs <- function() {
     ggplot(aes(condition, enrich, group = gset_dir)) +
     geom_line() +
     geom_point(size = 3) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           legend.text = element_text(size = 9)) +
     geom_hline(yintercept = 0, linetype = 'dashed') + 
@@ -566,7 +566,7 @@ make_trametinib_tc_figs <- function() {
                       ymin = G1_prop_avg - se),
                   width = 0.25) +
     ylab('Delta G0/G1 fraction') +
-    cdsr::theme_Publication() + 
+    theme_Publication() + 
     geom_hline(yintercept = 0, linetype = 'dashed') + 
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 12),
           axis.title.x = element_blank())
@@ -618,7 +618,7 @@ make_trametinib_tc_figs <- function() {
                       group_by(condition) %>%
                       top_n(n = 5, wt = abs(logFC)),
                     aes(label = Gene), size = 2.5) +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     facet_wrap(~condition, nrow = 2)
   ggsave(file.path(fig_dir, 'tramet_tc_all_volcanos.png'),
          width = 9, height = 4)

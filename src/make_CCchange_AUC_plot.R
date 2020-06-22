@@ -83,10 +83,10 @@ make_CCchange_AUC_plot <- function() {
     ggplot(aes(drug, value, fill = variable, group = variable)) +
     geom_bar(stat = 'identity', position = 'dodge', width = 0.7) +
     geom_hline(yintercept = 0, linetype = 'dashed') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('Delta cell fraction') +
     guides(fill = guide_legend(title = 'Phase')) +
-    cdsr::scale_fill_Publication() +
+    scale_fill_Publication() +
     theme(axis.text = element_text(angle = 90, hjust = 1)) 
   ggsave(file.path(fig_dir, 'CC_wphase_all_compounds.png'), width = 4.5, height = 3.5)
   
@@ -107,7 +107,7 @@ make_CCchange_AUC_plot <- function() {
     geom_hline(yintercept = 0, linetype = 'dashed') + 
     geom_vline(xintercept = 0, linetype = 'dashed') +
     guides(color = F, fill = F) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     xlab('S-phase sensitivity corr.') +
     ylab('G2/M-phase sensitivity corr.')
   ggsave(file.path(fig_dir, 'G2M_S_sens_corrs.png'), width = 4, height = 3.5)

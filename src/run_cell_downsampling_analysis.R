@@ -93,7 +93,7 @@ ggplot(all_avg_cors, aes(n_cells, cor, color = sens, group = CCLE_ID)) +
   guides(color = guide_colorbar(title = 'sensitivity', barwidth = 8)) +
   ylim(0, 1) +
   labs(x = 'N. cells per group', y = 'Correlation with\nall-cell profile') +
-  cdsr::theme_Publication()
+  theme_Publication()
 ggsave(file.path(fig_dir, 'trametinib_cell_downsampling.png'), width = 3.5, height = 3.5)
 
 }

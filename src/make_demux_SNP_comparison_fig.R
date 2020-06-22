@@ -61,7 +61,7 @@ make_demux_SNP_comparison_fig <- function() {
     geom_point(size = 2.5) +
     xlab('False-positive\ndoublets (%)') +
     ylab('False-negative\ndoublets (%)') + 
-    cdsr::theme_Publication()
+    theme_Publication()
   ggsave(file.path(fig_dir, 'demux_SNP_doublet_agreement.png'),
          width = 3, height = 2.5)
   
@@ -74,7 +74,7 @@ make_demux_SNP_comparison_fig <- function() {
     geom_point(pch = 21, size = 2.5, fill = 'black', color = 'white', stroke = 0.2) + 
     geom_point(aes(y = frac_doublets_dem), pch = 21, size = 2.5, fill = 'blue', color = 'white', stroke = 0.2) + 
     geom_point(aes(y = frac_doublets_dem_noLQ), pch = 21, size = 2.5, fill = 'green', color = 'white', stroke = 0.2) + 
-    cdsr::theme_Publication() +
+    theme_Publication() +
     xlab('Number of cells recovered') +
     ylab('Fraction of doublets') +
     geom_line(data = rep_dr, aes(y = frac_doublet), color = 'red') 

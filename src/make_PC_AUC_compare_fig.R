@@ -60,7 +60,7 @@ make_PC_AUC_compare_fig <- function() {
                                        .[['expt_name']])) %>% 
     ggplot(aes(expt_name, sens_rmag)) + 
     geom_bar(aes(fill = q < 0.1), stat = 'identity') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('PC1-sensitivity\ncorrelation magnitude') +
     scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
     guides(fill = guide_legend(title = 'FDR < 0.1')) +
@@ -78,7 +78,7 @@ make_PC_AUC_compare_fig <- function() {
                                        .[['expt_name']])) %>% 
     ggplot(aes(expt_name, sens_rmag)) + 
     geom_bar(aes(fill = q < 0.1), stat = 'identity') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('PC2-sensitivity\ncorrelation magnitude') +
     scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
     guides(fill = guide_legend(title = 'FDR < 0.1')) +
@@ -96,7 +96,7 @@ make_PC_AUC_compare_fig <- function() {
                                        .[['expt_name']])) %>% 
     ggplot(aes(expt_name, sens_rmag)) + 
     geom_bar(aes(fill = q < 0.1), stat = 'identity') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('PC3-sensitivity\ncorrelation magnitude') +
     scale_fill_manual(values = c(`FALSE` = 'darkgray', `TRUE` = 'darkred')) +
     guides(fill = guide_legend(title = 'FDR < 0.1')) +

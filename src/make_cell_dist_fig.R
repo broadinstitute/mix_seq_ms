@@ -19,9 +19,9 @@ make_cell_dist_fig <- function() {
   #distribution of cell classification
   ggplot(res, aes(expt, fill = cell_quality)) + 
     geom_histogram(stat = 'count', position = 'stack') +
-    cdsr::theme_Publication() +
+    theme_Publication() +
     ylab('Number of cells') +
-    cdsr::scale_fill_Publication() +
+    scale_fill_Publication() +
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank()) +
     guides(fill = guide_legend(title = element_blank(), nrow = 2))

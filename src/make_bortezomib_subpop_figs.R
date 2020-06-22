@@ -108,8 +108,8 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
       geom_segment(data = seg_avgs, aes(x = c1, y = c2, xend = t1, yend = t2),
                    arrow = arrow(length = unit(0.8,"cm")), size = 1.5) +
       coord_cartesian(xlim = xr, ylim = yr, clip = 'off') +
-      cdsr::scale_fill_Publication() +
-      cdsr::theme_Publication()
+      scale_fill_Publication() +
+      theme_Publication()
 
     ggsave(file.path(fig_dir, sprintf('%s_%s_bortezomib_subpop_phase.png', cur_CL, dred)), width = 3.5, height = 4, plot = g_phase)
 
@@ -131,7 +131,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
                        size = 2.5) +
       geom_vline(xintercept = 0, linetype = 'dashed') + 
       geom_hline(yintercept = 0, linetype = 'dashed') +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       scale_fill_manual(values = c(`FALSE` = 'black', `TRUE` = 'darkred'))
     ggsave(file.path(fig_dir, sprintf('%s_bortezomib_treat_cluster_volcano.png', cur_CL)),
            width = 3.5, height = 3)
@@ -199,7 +199,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
       scale_fill_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
       scale_color_gradient(limits = c(0, 3), oob = scales::squish, breaks = c(0, 3), labels = c('0', '>3'), low = 'darkgrey', high = 'red') +
       guides(color = FALSE) +
-      cdsr::theme_Publication() 
+      theme_Publication() 
     ggsave(file.path(fig_dir, sprintf('%s_bortezomib_treat_cluster_LFC_scatter.png', cur_CL)),
            width = 3.5, height = 3.5)
     

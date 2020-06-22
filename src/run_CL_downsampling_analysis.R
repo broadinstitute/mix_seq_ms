@@ -94,8 +94,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
     ylab('Correlation with full profile') +
     xlab('Num. cell lines') +
     ylim(0, 1) +
-    cdsr::scale_color_Publication() + 
-    cdsr::theme_Publication() +
+    scale_color_Publication() + 
+    theme_Publication() +
     geom_vline(xintercept = examp_n, linetype = 'dashed', color = 'red')
   ggsave(file.path(fig_dir, 'trametinib_downsampling_avgC.png'), width = 3.5, height = 3.5)
   
@@ -108,8 +108,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
     ylab('Correlation with full profile') +
     xlab('Num. cell lines') +
     ylim(0, 1) +
-    cdsr::scale_color_Publication() + 
-    cdsr::theme_Publication() +
+    scale_color_Publication() + 
+    theme_Publication() +
     geom_vline(xintercept = examp_n, linetype = 'dashed', color = 'red')
   ggsave(file.path(fig_dir, 'trametinib_downsampling_intC.png'), width = 3.5, height = 3.5)
   
@@ -123,8 +123,8 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
     ylab('Correlation with full profile') +
     xlab('Num. cell lines')+
     ylim(0, 1) +
-    cdsr::scale_color_Publication() + 
-    cdsr::theme_Publication() +
+    scale_color_Publication() + 
+    theme_Publication() +
     geom_vline(xintercept = examp_n, linetype = 'dashed', color = 'red')
   ggsave(file.path(fig_dir, 'trametinib_downsampling_slopeC.png'), width = 3.5, height = 3.5)
   
@@ -139,7 +139,7 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
       ylab('logFC (subset)') +
       geom_hline(yintercept = 0, linetype = 'dashed') + 
       geom_vline(xintercept = 0, linetype = 'dashed') +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       ggtitle('Average')
     comb <- full_join(cur_limma_res$res_slope, limma_res$res_slope, by = 'Gene', suffix = c('_sub', '_full'))
     g2 <- ggplot(comb, aes(logFC_full, logFC_sub)) + 
@@ -149,7 +149,7 @@ run_CL_downsampling_analysis <- function(cur_expt, recompute = FALSE) {
       ylab('logFC (subset)') +
       geom_hline(yintercept = 0, linetype = 'dashed') + 
       geom_vline(xintercept = 0, linetype = 'dashed') +
-      cdsr::theme_Publication() +
+      theme_Publication() +
       ggtitle('Viability-related')
     cowplot::plot_grid(g1, g2)
   }
