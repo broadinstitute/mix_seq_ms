@@ -51,7 +51,7 @@ load_sc_data <- function(expt_params, sc_expts, min_cells_per_gene = 0, min_gene
                                min.features = min_genes_per_cell,
                                meta.data = dat$cell_info)
   #make singlet classifications the cell identifiers
-  seuObj <- SetIdent(seuObj, value = 'singlet_ID')
+  Idents(object = seuObj) <- "singlet_ID"
   
   if (QC_filter) {
     #get rid of doublets and low-quality cells
