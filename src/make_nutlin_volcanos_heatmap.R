@@ -62,7 +62,9 @@ make_nutlin_volcanos_heatmap <- function() {
     xlim(min_val, max_val) +
     ggtitle('TP53 Mutant')
   ggsave(file.path(fig_dir, 'nutlin_TP53WT_avg_volcano.png'), width = 4, height = 3.5, plot = g_WT)
+  ggsave(file.path(fig_dir, 'nutlin_TP53WT_avg_volcano.pdf'), width = 4, height = 3.5, plot = g_WT)
   ggsave(file.path(fig_dir, 'nutlin_TP53Null_avg_volcano.png'), width = 4, height = 3.5, plot = g_Null)
+  ggsave(file.path(fig_dir, 'nutlin_TP53Null_avg_volcano.pdf'), width = 4, height = 3.5, plot = g_Null)
   
   
   #now create heatmap plot
@@ -74,6 +76,7 @@ make_nutlin_volcanos_heatmap <- function() {
       dplyr::select(CCLE_ID, AUC = AUC_avg, TP53_status)
   
   sc_dat <- load_compute_CPM_stats(cur_expt, results_dir, type = 'sum', prior_counts = globals$prior_cnt)
+  CL_df %<>% dplyr::filter(CCLE_ID %in% colnames(sc_dat$LFC_mat))
   top_genes <- WT_DE %>% 
     dplyr::filter(adj.P.Val < globals$q_thresh) %>% 
     dplyr::arrange(dplyr::desc(abs(logFC))) %>% 
@@ -108,7 +111,7 @@ make_nutlin_volcanos_heatmap <- function() {
                    fontsize = 8,
                    treeheight_col = 0, 
                    treeheight_row = 10,
-                   filename = file.path(fig_dir, sprintf('%s_LFC_heatmap.png', cur_expt$expt_name)),
+                   filename = file.path(fig_dir, sprintf('%s_LFC_heatmap.pdf', cur_expt$expt_name)),
                    show_rownames = TRUE,
                    width = 5.5, height = 3,
                    annotation_legend = TRUE)
@@ -116,5 +119,6 @@ make_nutlin_volcanos_heatmap <- function() {
   gene_stat <- WT_DE$logFC %>% set_names(WT_DE$Gene)
   make_hyper_gsa_plot(gene_stat, gsc_data$combined, top_n = 50, n_lab_per = 5, lab_size = 3)
   ggsave(file.path(fig_dir, 'nutlin_P53WT_GSEA_stem.png'), width = 5.5, height = 2.5)
-
+  ggsave(file.path(fig_dir, 'nutlin_P53WT_GSEA_stem.pdf'), width = 5.5, height = 2.5)
+  
 }

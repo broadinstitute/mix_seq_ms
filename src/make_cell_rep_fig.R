@@ -26,4 +26,6 @@ make_cell_rep_fig <- function(cur_expt) {
     
   ggsave(file.path(fig_dir, sprintf('%s_cell_rep.png', cur_expt$expt_name)),
          width = 5, height = 3.5)
+  ggsave(file.path(fig_dir, sprintf('%s_cell_rep.pdf', cur_expt$expt_name)),
+         width = 5, height = 3.5)
 }

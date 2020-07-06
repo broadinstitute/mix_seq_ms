@@ -109,7 +109,7 @@ make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
   #make combined tsne colored by treatment condition
   df %<>% dplyr::mutate(tcond = plyr::revalue(condition, c(`control` = 'DMSO', `treat` = expt_params$drug_name)))
   g <- ggplot(df %>% filter(cell_quality == 'normal'), aes(t1, t2)) +
-    geom_point( aes(fill = tcond), pch = 21, size = 0.75, color = 'white', alpha = 0.8, stroke = 0.1) +
+    geom_point( aes(fill = tcond), pch = 21, size = 1, color = 'white', alpha = 0.8, stroke = 0.1) +
     guides(alpha = F, size = F, fill = guide_legend(title = element_blank(), override.aes = list(size = 3))) +
     scale_fill_manual(values = c('darkgray', 'darkred')) + 
     xlab(paste0(dred, ' 1')) + ylab(paste0(dred, ' 2')) +
@@ -123,6 +123,7 @@ make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
     }
   g
   ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred,'_condcol.png'))), width = fwidth, height = fheight, dpi = 400)
+  ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred,'_condcol.pdf'))), width = fwidth, height = fheight)
   
   #cell cycle phase example (specifically for nutlin)
   df %<>% dplyr::mutate(Phase = factor(Phase, levels = c('G0/G1', 'S', 'G2/M')))
@@ -152,6 +153,7 @@ make_tsne_example_fig <- function(expt_params, dred = 'tsne') {
                arrow = arrow(length = unit(0.2,"cm")), size = 1.25, alpha = 0.75, color = 'red') #619CFF
   g
   ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred, '_CCP.png'))), width = 4.2, height = 4.25)
-
+  ggsave(file.path(fig_dir, paste0(expt_name, '_', paste0('combined_', dred, '_CCP.pdf'))), width = 4.2, height = 4.25)
+  
 }
 

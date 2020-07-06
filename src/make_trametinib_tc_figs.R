@@ -149,6 +149,8 @@ make_trametinib_tc_figs <- function() {
     guides(fill = guide_legend(override.aes = list(size = 3)))
   ggsave(file.path(fig_dir, 'trametinib_tc_fulltsne.png'),
          width = 4.5, height = 4)
+  ggsave(file.path(fig_dir, 'trametinib_tc_fulltsne.pdf'),
+         width = 4.5, height = 4)  
   
   ## MAKE EXAMPLE TIME COURSE PLOTS
   #set order of hash_tag factor levels
@@ -169,16 +171,23 @@ make_trametinib_tc_figs <- function() {
   g2 <- make_gene_vlnplot(seuObj, CL1, gene_2)
   ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.png', CL1, gene_1)),
          plot = g1, width = 4., height = 3.5)
+  ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.pdf', CL1, gene_1)),
+         plot = g1, width = 4., height = 3.5)
   ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.png', CL1, gene_2)),
          plot = g2, width = 4., height = 3.5)
+  ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.pdf', CL1, gene_2)),
+         plot = g2, width = 4., height = 3.5)  
   
   g1 <- make_gene_vlnplot(seuObj, CL2, gene_1)
   g2 <- make_gene_vlnplot(seuObj, CL2, gene_2)
   ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.png', CL2, gene_1)),
          plot = g1, width = 4., height = 3.5)
+  ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.pdf', CL2, gene_1)),
+         plot = g1, width = 4., height = 3.5)
   ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.png', CL2, gene_2)),
          plot = g2, width = 4., height = 3.5)
-  
+  ggsave(file = file.path(fig_dir, sprintf('tc_violin_%s_%s.pdf', CL2, gene_2)),
+         plot = g2, width = 4., height = 3.5)  
   
   ## GET SUM-COLLAPSED PROFILES
   #group by cell line/condition
@@ -318,6 +327,7 @@ make_trametinib_tc_figs <- function() {
     facet_wrap(~condition) +
     ggtitle('Viability related')
   ggsave(file.path(fig_dir, 'tc_slope_sum_mean_compare.png'), width = 6, height = 5)
+  ggsave(file.path(fig_dir, 'tc_slope_sum_mean_compare.pdf'), width = 6, height = 5)
   
   comb_int_results <- full_join(all_res_int, all_res_int_avg_collapse, by = c('Gene', 'condition'), suffix = c('_sum', '_mean')) %>% 
     dplyr::mutate(condition = paste0(str_match(condition, 'Tram_([0-9]+)')[,2], 'hr'),
@@ -333,7 +343,8 @@ make_trametinib_tc_figs <- function() {
     facet_wrap(~condition) +
     ggtitle('Viability independent')
   ggsave(file.path(fig_dir, 'tc_int_sum_mean_compare.png'), width = 6, height = 5)
-
+  ggsave(file.path(fig_dir, 'tc_int_sum_mean_compare.pdf'), width = 6, height = 5)
+  
   
   #HEATMAP PLOTS
   #get genes which are significantly down-regulated, sort by effect size
@@ -367,7 +378,7 @@ make_trametinib_tc_figs <- function() {
           legend.direction = 'horizontal') +
     scale_fill_gradient2(limits = c(-3,3), oob = squish, low = muted("blue"), high = muted("red"))
   ggsave(file.path(fig_dir, 'tc_int_hmap.png'), width = 3.5, height = 3.5)
-  
+  ggsave(file.path(fig_dir, 'tc_int_hmap.pdf'), width = 3.5, height = 3.5) 
   
   all_res_slope %>% 
     dplyr::mutate(condition = as.character(condition),
@@ -384,6 +395,7 @@ make_trametinib_tc_figs <- function() {
           legend.direction = 'horizontal') +
     scale_fill_gradient2(limits = c(-4,4), oob = squish, low = muted("blue"), high = muted("red"))
   ggsave(file.path(fig_dir, 'tc_slope_hmap.png'), width = 3.5, height = 3.5)
+  ggsave(file.path(fig_dir, 'tc_slope_hmap.pdf'), width = 3.5, height = 3.5)
   
 
   #repeat above using mean-collapsed model estimates
@@ -402,7 +414,7 @@ make_trametinib_tc_figs <- function() {
           legend.direction = 'horizontal') +
     scale_fill_gradient2(limits = c(-3,3), oob = squish, low = muted("blue"), high = muted("red"))
   ggsave(file.path(fig_dir, 'tc_int_hmap_avg_collapsed.png'), width = 3.5, height = 3.5)
-  
+  ggsave(file.path(fig_dir, 'tc_int_hmap_avg_collapsed.pdf'), width = 3.5, height = 3.5)  
   
   all_res_slope_avg_collapse %>% 
     dplyr::mutate(condition = as.character(condition),
@@ -419,7 +431,7 @@ make_trametinib_tc_figs <- function() {
           legend.direction = 'horizontal') +
     scale_fill_gradient2(limits = c(-4,4), oob = squish, low = muted("blue"), high = muted("red"))
   ggsave(file.path(fig_dir, 'tc_slope_hmap_avg_collapsed.png'), width = 3.5, height = 3.5)
-  
+  ggsave(file.path(fig_dir, 'tc_slope_hmap_avg_collapsed.pdf'), width = 3.5, height = 3.5)  
     
   #GSEA on these components
   get_condition_GSEA <- function(df, gsc, n_top_genes) {
@@ -471,6 +483,8 @@ make_trametinib_tc_figs <- function() {
     xlab('Time post-treatment')
   ggsave(file.path(fig_dir, 'trametinib_tc_int_gsea_new.png'),
          width = 3, height = 2.25)
+  ggsave(file.path(fig_dir, 'trametinib_tc_int_gsea_new.pdf'),
+         width = 3, height = 2.25)
   
   gsea_slope %>% 
     dplyr::filter(gset_dir %in% c('HALLMARK_G2M_CHECKPOINT.down')) %>% 
@@ -487,6 +501,8 @@ make_trametinib_tc_figs <- function() {
     ylab('Gene set enrichment\n-log10(p-value)') +
     xlab('Time post-treatment') 
   ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new.png'),
+         width = 3, height = 2.25)
+  ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new.pdf'),
          width = 3, height = 2.25)
   
   #repeat with avg-collapsing  
@@ -508,6 +524,8 @@ make_trametinib_tc_figs <- function() {
     xlab('Time post-treatment')
   ggsave(file.path(fig_dir, 'trametinib_tc_int_gsea_new_avg_collapse.png'),
          width = 3, height = 2.25)
+  ggsave(file.path(fig_dir, 'trametinib_tc_int_gsea_new_avg_collapse.pdf'),
+         width = 3, height = 2.25)
   
   gsea_slope_avg_collapse %>% 
     dplyr::filter(gset_dir %in% c('HALLMARK_G2M_CHECKPOINT.down')) %>% 
@@ -524,6 +542,8 @@ make_trametinib_tc_figs <- function() {
     ylab('Gene set enrichment\n-log10(p-value)') +
     xlab('Time post-treatment') 
   ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new_avg_collapse.png'),
+         width = 3, height = 2.25)
+  ggsave(file.path(fig_dir, 'trametinib_tc_slope_gsea_new_avg_collapse.pdf'),
          width = 3, height = 2.25)
   
   
@@ -571,6 +591,7 @@ make_trametinib_tc_figs <- function() {
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 12),
           axis.title.x = element_blank())
   ggsave(file.path(fig_dir, 'tc_G1_frac.png'), width = 3.5, height = 3)
+  ggsave(file.path(fig_dir, 'tc_G1_frac.pdf'), width = 3.5, height = 3)
   
   
   #FIGURE WITH ALL VOLCANOS
@@ -622,4 +643,6 @@ make_trametinib_tc_figs <- function() {
     facet_wrap(~condition, nrow = 2)
   ggsave(file.path(fig_dir, 'tramet_tc_all_volcanos.png'),
          width = 9, height = 4)
-}
+  ggsave(file.path(fig_dir, 'tramet_tc_all_volcanos.pdf'),
+         width = 9, height = 4)
+  }

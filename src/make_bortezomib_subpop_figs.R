@@ -1,9 +1,10 @@
 make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
   library(magrittr)
+  library(edgeR)
   
   #PARAMS
   n_PCs <- 10
-  use_SCTransform <- TRUE
+  use_SCTransform <- FALSE
   clust_k <- 20
   clust_res <- 0.25
   #umap params
@@ -28,8 +29,8 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
       seuSub <- SCTransform(seuSub, variable.features.n = globals$n_highvar_genes)
     } else {
       seuSub <- ScaleData(object = seuSub)
-      seuSub <- FindVariableGenes(object = seuSub,
-                                  top.genes = globals$n_highvar_genes,
+      seuSub <- FindVariableFeatures(object = seuSub,
+                                  nfeatures = globals$n_highvar_genes,
                                   do.plot = FALSE,
                                   selection.method = 'vst')
     }
@@ -43,7 +44,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
     if (dred == 'tsne') {
       seuSub <- RunTSNE(object = seuSub, dims = 1:n_PCs, perplexity = globals$tsne_perplexity, seed.use = 1)
     } else if (dred == 'umap') {
-      seuSub <- RunUMAP(object = seuSub, dims = 1:n_PCs, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors)
+      seuSub <- RunUMAP(object = seuSub, dims = 1:n_PCs, min.dist = umap_min_dist, n.neighbors = umap_n_neighbors, seed.use = 1)
     } else {
       stop('dred value not accepted')
     }
@@ -112,6 +113,7 @@ make_bortezomib_subpop_figs <- function(targ_CLs, dred = 'umap') {
       theme_Publication()
 
     ggsave(file.path(fig_dir, sprintf('%s_%s_bortezomib_subpop_phase.png', cur_CL, dred)), width = 3.5, height = 4, plot = g_phase)
+    ggsave(file.path(fig_dir, sprintf('%s_%s_bortezomib_subpop_phase.pdf', cur_CL, dred)), width = 3.5, height = 4, plot = g_phase)
 
     
     #Run DE analysis comparing the two treatment clusters

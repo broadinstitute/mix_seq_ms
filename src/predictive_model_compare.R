@@ -154,6 +154,7 @@ make_predictive_model_figs <- function() {
     scale_color_Publication() +
     scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_all.png'), width = 4, height = 4)
+  ggsave(file.path(fig_dir, 'pred_R2_scatter_all.pdf'), width = 4, height = 4)
   
   with(pmod_results_wide, {
     print(sum(!is.na(matched_sample_pred) & !is.na(LFC_pred)))
@@ -174,6 +175,7 @@ make_predictive_model_figs <- function() {
     scale_color_Publication() +
     scale_fill_Publication()
   ggsave(file.path(fig_dir, 'pred_R2_scatter_matched.png'), width = 4, height = 4)
+  ggsave(file.path(fig_dir, 'pred_R2_scatter_matched.pdf'), width = 4, height = 4)
   
   n_results_wide <- 
     all_pmod_results %>% 

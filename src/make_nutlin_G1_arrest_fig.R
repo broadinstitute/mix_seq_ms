@@ -20,4 +20,5 @@ make_nutlin_G1_arrest_fig <- function() {
     scale_fill_manual(values = c(`TP53 Mut` = 'black', `TP53 WT` = 'red')) +
     guides(fill = guide_legend(title = element_blank()))
   ggsave(file.path(fig_dir, paste0(cur_expt$expt_name, '_', 'delta_G1_scatter.png')), width = 4, height = 3.5)
+  ggsave(file.path(fig_dir, paste0(cur_expt$expt_name, '_', 'delta_G1_scatter.pdf')), width = 4, height = 3.5)
 }

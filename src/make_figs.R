@@ -56,7 +56,7 @@ source(here::here('src', 'make_subclone_response_figs.R'))
 make_subclone_response_figs(sc_DE_meta$trametinib_24hr_expt1, targ_CL = 'IALM_LUNG', dred = dred)
 
 source(here::here('src', 'make_bortezomib_subpop_figs.R'))
-make_bortezomib_subpop_figs(c('RCC10RGB_KIDNEY', 'SNU1079_BILIARY_TRACT', 'RCM1_LARGE_INTESTINE', 'RERFLCAD1_LUNG', 'TEN_ENDOMETRIUM'), dred = dred)
+make_bortezomib_subpop_figs(c('RCC10RGB_KIDNEY'), dred = dred)
 
 source(here::here('src', 'make_bortezomib_heterogeneity_figs.R'))
 make_bortezomib_heterogeneity_figs()

@@ -4,21 +4,22 @@ make_bortezomib_heterogeneity_figs <- function() {
   library(ComplexHeatmap)
   library(Seurat)
   library(tidyverse)
+  library(edgeR)
 
   #PARAMS
-  treatment <- "bortezomib_24hr_expt1"
-  control <- "dmso_24hr_expt1"
   min_cells_per_cond <- 10
   cluster_res <- .25
 
   #LOAD DATA
   sc_data <- load_sc_data(sc_DE_meta$bortezomib_24hr_expt1, sc_expts = sc_expts)
-  #sc_data <- cdsc::load_and_process_sc_data_by_expt(c(treatment,control), quality = c("normal"))
-
-  n_cls <- sc_data$singlet_ID %>% unique() %>% length()
-  n_condition <- sc_data@meta.data %>% count(singlet_ID,condition) %>% acast(singlet_ID ~ condition, value.var = 'n')
+  cell_df <- load_cell_info(sc_DE_meta$bortezomib_24hr_expt1) %>% 
+    tidyr::separate(col = 'condition', into = c('condition', 'batch'), sep = '_')
+  
+  n_cls <- cell_df$singlet_ID %>% unique() %>% length()
+  n_condition <- cell_df %>% dplyr::count(singlet_ID,condition) %>% acast(singlet_ID ~ condition, value.var = 'n')
   usable_cls <- rownames(n_condition)[rowSums(n_condition >= min_cells_per_cond) == 2]
   sc_data <- sc_data[,sc_data$singlet_ID %in% usable_cls]
+  cell_df <- cell_df[cell_df$singlet_ID %in% usable_cls, ]
   n_PCs <- length(usable_cls) * globals$n_pcs_per_CL
 
   #PROCESS DATA
@@ -45,8 +46,8 @@ make_bortezomib_heterogeneity_figs <- function() {
   #IDENTIFY CLUSTERS
   sc_cluster <- NULL
   for (cl in unique(sc_data$singlet_ID)){
-    sc_cl <- sc_data[,sc_data$singlet_ID == cl & sc_data$condition == treatment]
-    sc_cl %<>% FindNeighbors(dims = 1:n_PCs,k.param = 28)
+    sc_cl <- sc_data[,sc_data$singlet_ID == cl & sc_data$condition == 'treat_1']
+    sc_cl %<>% FindNeighbors(dims = 1:n_PCs,k.param = 20)
     sc_cl %<>% FindClusters(resolution = .25)
     if (is.null(sc_cluster)){
       sc_cluster <- sc_cl
@@ -55,16 +56,23 @@ make_bortezomib_heterogeneity_figs <- function() {
       sc_cluster %<>% merge(sc_cl)
     }
   }
-  sc_data<- sc_data[,sc_data$condition == control] %>% merge(sc_cluster)
+  sc_data<- sc_data[, grepl('control', sc_data$condition)] %>% merge(sc_cluster)
 
   #ORDER CLUSTERS BY CELL CYCLE
-  hetro_cls <- sc_data[,sc_data$condition == treatment]@meta.data %>% group_by(singlet_ID) %>%
-    summarise(n_cluster = n_distinct(seurat_clusters)) %>% filter(n_cluster > 1) %>% .[["singlet_ID"]]
-  sc_hetro <- sc_data[,sc_data$condition == treatment & sc_data$singlet_ID %in% hetro_cls]
-  ordered_clusters <- sc_hetro@meta.data %>% count(singlet_ID,Phase,seurat_clusters) %>% spread(value = "n",key = "Phase",fill = 0) %>%
-    mutate(frac_S = S/(S+`G0/G1`+`G2/M`)) %>% group_by(singlet_ID) %>%
-    mutate(flip = ifelse(first(frac_S)>last(frac_S),TRUE,FALSE)) %>% ungroup() %>%
-    mutate(new_cluster = ifelse(flip,ifelse(seurat_clusters == 0,1,0),ifelse(seurat_clusters == 0,0,1)))
+  hetro_cls <- sc_data[,sc_data$condition == 'treat_1']@meta.data %>% group_by(singlet_ID) %>%
+    dplyr::summarise(n_cluster = n_distinct(seurat_clusters)) %>% filter(n_cluster > 1) %>% .[["singlet_ID"]]
+  sc_hetro <- sc_data[,sc_data$condition == 'treat_1' & sc_data$singlet_ID %in% hetro_cls]
+
+  ordered_clusters <- sc_hetro@meta.data %>% 
+    dplyr::count(singlet_ID,Phase,seurat_clusters) %>% 
+    spread(value = "n",key = "Phase",fill = 0) %>%
+    mutate(frac_S = S/(S+`G0/G1`+`G2/M`)) %>% 
+    group_by(singlet_ID) %>%
+    dplyr::arrange(frac_S) %>% 
+    dplyr::mutate(new_cluster = rank(frac_S)-1) %>% 
+    ungroup() %>% 
+      arrange(singlet_ID)
+
   md <-  sc_hetro@meta.data %>% left_join(ordered_clusters)
   sc_hetro %<>% AddMetaData(as.character(md$new_cluster),col.name = "cluster")
 
@@ -80,12 +88,12 @@ make_bortezomib_heterogeneity_figs <- function() {
   rownames(summed_counts) <- md %>% dplyr::summarise() %>% tidyr::unite(ID,singlet_ID,cluster,sep = ',') %>% .[["ID"]]
   limma_res <- fit_viability_models(summed_counts %>% t(),sample_info = sample_info)
   limma_avg <- limma_res$res_avg
-  hits <- limma_avg %>% filter(P.Value < .05) %>% arrange(abs(logFC)) %>% tail(n_genes_to_show)
+  # hits <- limma_avg %>% filter(P.Value < .05) %>% arrange(abs(logFC)) %>% tail(n_genes_to_show)
 
 
   #VOLCANO PLOT
   volcano <- limma_avg %>% ggplot(aes(logFC, -log10(P.Value))) +
-    geom_point(data = limma_avg %>% filter(!Gene %in% Seurat::cc.genes$s.genes), fill = 'black', pch = 21, size = 1.5, alpha = 0.8, color = 'gray', stroke = 0.1) +
+    geom_point(data = limma_avg %>% filter(!Gene %in% Seurat::cc.genes$s.genes), fill = 'black', pch = 21, size = 2, alpha = 1, color = 'gray', stroke = 0.1) +
     geom_point(data = limma_avg %>% filter(Gene %in% Seurat::cc.genes$s.genes), fill = 'darkred', pch = 21, size = 3, alpha = 0.8, color = 'gray', stroke = 0.1) +
     geom_label_repel(data = . %>% dplyr::arrange(dplyr::desc(logFC)) %>% head(10),
                      aes(label = Gene),
@@ -97,19 +105,20 @@ make_bortezomib_heterogeneity_figs <- function() {
     geom_hline(yintercept = 0, linetype = 'dashed') +
     theme_Publication()
 
-  ggsave(file.path(fig_dir,'bortezomib_volcano.png'), width = 4, height = 4, plot = volcano)
-
+  ggsave(file.path(fig_dir,'bortezomib_volcano.png'), width = 4, height = 3.5, plot = volcano)
+  ggsave(file.path(fig_dir,'bortezomib_volcano.pdf'), width = 4, height = 3.5, plot = volcano)
+  
   #HEATMAP
   heatmap_genes <- limma_avg %>% filter(logFC > 0) %>% arrange(adj.P.Val) %>% head(25) %>%  .[["Gene"]]
   heatmap_genes <- c(heatmap_genes,limma_avg %>% filter(logFC < 0) %>% arrange(adj.P.Val) %>% head(25) %>%  .[["Gene"]])
 
-  mean_control <- get_summed_counts(sc_data[,sc_data$condition == control]) %>% t() %>% cpm(log = TRUE,prior.count = 1)
-  treatment_counts <- GetAssayData(sc_data[,sc_data$condition == treatment],slot = "counts") %>%
+  mean_control <- get_summed_counts(sc_data[,grepl('control', sc_data$condition)]) %>% t() %>% cpm(log = TRUE,prior.count = 1)
+  treatment_counts <- GetAssayData(sc_data[,sc_data$condition == 'treat_1'],slot = "counts") %>%
     cpm(log = TRUE,prior.count = .05)
   logFC <- NULL
   for (cl in unique(sc_data$singlet_ID)){
     cells = sc_data@meta.data %>% rownames_to_column(var = "barcode") %>%
-      filter(condition == treatment,singlet_ID == cl) %>% .[["barcode"]]
+      filter(condition == 'treat_1',singlet_ID == cl) %>% .[["barcode"]]
     if(is.null(logFC)){
       logFC <- treatment_counts[heatmap_genes,cells] -  mean_control[heatmap_genes,cl]
     }
@@ -120,7 +129,7 @@ make_bortezomib_heterogeneity_figs <- function() {
 
   sc_hetro %<>% AddMetaData(str_c(sc_hetro$singlet_ID,sc_hetro$cluster),col.name = "cl_cluster")
 
-  md <- sc_hetro[,sc_hetro$condition == treatment]@meta.data
+  md <- sc_hetro[,sc_hetro$condition == 'treat_1']@meta.data
   md %<>% rownames_to_column(var = "barcode")
   md <- sc_hetro@meta.data %>% rownames_to_column(var = "barcode") %>% select(barcode,cluster) %>%
     mutate(fixed_cluster = cluster) %>% select(-cluster) %>% right_join(md,by = "barcode") %>%
@@ -129,15 +138,15 @@ make_bortezomib_heterogeneity_figs <- function() {
                           Cluster = ifelse(fixed_cluster == 0,1,2)) %>%  select(`Cell line`,Cluster,Phase)
   row_split <- factor(md$cl_cluster,levels= c("RCC10RGB_KIDNEY0","RCC10RGB_KIDNEY1","SNU1079_BILIARY_TRACT0",
                                               "SNU1079_BILIARY_TRACT1","TEN_ENDOMETRIUM0","TEN_ENDOMETRIUM1",
-                                              "RERFLCAD1_LUNG0","RERFLCAD1_LUNG1","NCIH226_LUNG0","NCIH226_LUNG1",
+                                              "RERFLCAD1_LUNG0","RERFLCAD1_LUNG1","NCIH226_LUNG0","NCIH226_LUNG1", "NCIH2347_LUNG0", "NCIH2347_LUNG1",
                                               "SKMEL3_SKIN0","SKMEL3_SKIN1","COLO680N_OESOPHAGUS0","COLO680N_OESOPHAGUS1",
                                               "IALM_LUNG0","IALM_LUNG1","RCM1_LARGE_INTESTINE0","RCM1_LARGE_INTESTINE1"))
-  col_ano <- rowAnnotation(df = df_ana,col = list(Phase = c("G0/G1" = "#386cb0", "G2/M" = "#7fc97f", "S" = "#fdb462"),
+  col_ano <- rowAnnotation(df = df_ana %>% dplyr::select(-`Cell line`),col = list(Phase = c("G0/G1" = "#386cb0", "G2/M" = "#7fc97f", "S" = "#fdb462"),
                                                   Cluster = c(`1` = "gray", `2` = "brown")))
   pdf(file.path(fig_dir,'bortezomib_heatmap.pdf'), width = 8, height = 7)
   Heatmap(t(logFC[,md$barcode]),name = "logFC",cluster_rows = F,cluster_row_slices = T,show_row_names = F,
           left_annotation = col_ano,split = row_split,column_names_gp = gpar(fontsize = 10), row_title = " ",
-          show_column_dend = F,row_gap = unit(c(1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3), "mm"),border = TRUE)
+          show_column_dend = F,row_gap = unit(c(1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3), "mm"),border = TRUE)
   dev.off()
   return()
 }

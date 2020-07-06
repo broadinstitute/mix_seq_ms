@@ -29,4 +29,5 @@ make_singlet_SNP_heatmap <- function() {
                                  label.theme = element_text(size = 9))) +
     coord_cartesian(clip = 'off')
   ggsave(file.path(fig_dir, 'SNP_heatmap_example.png'), width = 4.5, height = 4.)
+  ggsave(file.path(fig_dir, 'SNP_heatmap_example.pdf'), width = 4.5, height = 4.)
 }

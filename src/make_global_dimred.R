@@ -84,7 +84,7 @@ make_global_dimred <- function() {
                                n.neighbors = umap_nneighbors,
                                min.dist =  umap_mindist, 
                                metric = metric,
-                               seed.use = 3,
+                               seed.use = 1, #3
                                verbose=F)
   
   df <- Embeddings(new_obj, reduction = 'umap') %>% 
@@ -122,7 +122,8 @@ make_global_dimred <- function() {
             Trametinib_6hr = '#00BFC4')
   stopifnot(all(df$drug_time %in% names(cols)))
   
-  zoom_x <- c(-7.75, -1.5); zoom_y <- c(-7, 0)
+  # zoom_x <- c(-7.75, -1.5); zoom_y <- c(-7, 0)
+  zoom_x <- c(-10, -4); zoom_y <- c(-7.5, -2.5)
   
   #Make overall plot colored by treatment
   g <- df %>% 
@@ -136,6 +137,8 @@ make_global_dimred <- function() {
     geom_rect(xmin = zoom_x[1], xmax = zoom_x[2], ymin = zoom_y[1], ymax = zoom_y[2], 
               fill = NA, color = 'black', lwd = 0.2)
   ggsave(file.path(fig_dir, 'full_LFC_umap_treat.png'), plot = g, width = 5, height = 4)
+  ggsave(file.path(fig_dir, 'full_LFC_umap_treat.pdf'), plot = g, width = 5, height = 4)
+  
   # plotly::ggplotly(g)
   
   #now make zoomed plot
@@ -165,7 +168,7 @@ make_global_dimred <- function() {
     # geom_label_repel(data = avgs, aes(label = drug_status_time, color = drug_time), size = 2.25, label.padding = 0.1) +
     coord_cartesian(xlim = zoom_x, ylim = zoom_y)
   ggsave(file.path(fig_dir, 'full_LFC_umap_treat_zoom.png'), plot = g, width = 2.5, height = 2)
-  
+  ggsave(file.path(fig_dir, 'full_LFC_umap_treat_zoom.pdf'), plot = g, width = 2.5, height = 2)
   #now color by sensitivity
   g <- df %>% 
     ggplot(aes(UMAP_1, UMAP_2)) + 

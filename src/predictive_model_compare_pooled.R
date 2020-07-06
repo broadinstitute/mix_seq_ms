@@ -69,6 +69,7 @@ comb_X <- do.call(rbind, llply(all_res, function(x) x$X)) %>%
 #build and fit global model
 all_X <- list(LFC = list(data = comb_X))
 input_data <- proc_input_data(all_X, all_y)
+set.seed(1)
 fids <- caret::createFolds(input_data$y, k = kfold, list = FALSE) %>% 
   set_names(names(input_data$y))
 
@@ -101,6 +102,8 @@ ggplot(gene_stats, aes(cor, imp)) +
   theme_Publication()
 ggsave(file.path(fig_dir, 'global_model_feature_import.png'),
        width = 4, height = 3.5)
+ggsave(file.path(fig_dir, 'global_model_feature_import.pdf'),
+       width = 4, height = 3.5)
 
 up_genes <- gene_stats %>% 
  filter(cor > 0, imp > imp_threshold) %>% 
@@ -116,6 +119,8 @@ res_up <- run_GSAhyper(up_genes, all_genes, gsc_data$combined)
 
 make_stem_plot_precom(res_up, res_down, n_lab_per = 5)
 ggsave(file.path(fig_dir, 'global_feat_imp_gsea.png'),
+       width = 5.5, height = 2.5)
+ggsave(file.path(fig_dir, 'global_feat_imp_gsea.pdf'),
        width = 5.5, height = 2.5)
 
 

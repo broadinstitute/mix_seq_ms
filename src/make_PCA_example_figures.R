@@ -31,6 +31,8 @@ make_PCA_example_figures <- function(cur_expt) {
     theme_Publication()
   ggsave(file.path(fig_dir, sprintf('%s_screeplot.png', cur_expt$expt_name)),
          width = 2.5, height = 2.)
+  ggsave(file.path(fig_dir, sprintf('%s_screeplot.pdf', cur_expt$expt_name)),
+         width = 2.5, height = 2.)
   
   #make schematic LFC matrix plot
   top_genes <- apply(sc_DE$LFC_mat, 1, sd, na.rm=T) %>% 
@@ -51,7 +53,7 @@ make_PCA_example_figures <- function(cur_expt) {
                    treeheight_col = 0,
                    fontsize = 7,
                    annotation_legend = FALSE,
-                   filename = file.path(fig_dir, sprintf('%s_schematic_heatmap.png', cur_expt$expt_name)),
+                   filename = file.path(fig_dir, sprintf('%s_schematic_heatmap.pdf', cur_expt$expt_name)),
                    width = 3, height = 2.5)
   
   
@@ -82,6 +84,7 @@ make_PCA_example_figures <- function(cur_expt) {
     guides(fill = FALSE)
     # guides(fill = guide_legend(title = element_blank()))
   ggsave(file.path(fig_dir, sprintf('%s_PC1_PRISM_scatter.png', cur_expt$expt_name)), width = 3.25, height = 2.75)
+  ggsave(file.path(fig_dir, sprintf('%s_PC1_PRISM_scatter.pdf', cur_expt$expt_name)), width = 3.25, height = 2.75)
   
   #make PC scatter for trametinib            
   if (cur_expt$drug_name == 'trametinib') {
@@ -90,6 +93,7 @@ make_PCA_example_figures <- function(cur_expt) {
       theme_Publication() +
       guides(fill = guide_legend(nrow = 2, title = element_blank()))
     ggsave(file.path(fig_dir, sprintf('%s_PC_scatter.png', cur_expt$expt_name)), width = 3, height = 3)
+    ggsave(file.path(fig_dir, sprintf('%s_PC_scatter.pdf', cur_expt$expt_name)), width = 3, height = 3)
     
     #plot PC2 vs SOX10 expression
     GE <- load.from.taiga(data.name='depmap-rnaseq-expression-data-ccd0', data.version=14, data.file='CCLE_depMap_19Q3_TPM_ProteinCoding') %>%
@@ -106,7 +110,8 @@ make_PCA_example_figures <- function(cur_expt) {
       guides(fill = FALSE)
       # guides(fill = guide_legend(nrow = 1, title = element_blank(), override.aes = list(stroke = 0.5)))
       ggsave(file.path(fig_dir, sprintf('%s_PC_SOX10_scatter.png', cur_expt$expt_name)), width = 3.25, height = 2.75)
-  }
+      ggsave(file.path(fig_dir, sprintf('%s_PC_SOX10_scatter.pdf', cur_expt$expt_name)), width = 3.25, height = 2.75)
+      }
    
 }
 

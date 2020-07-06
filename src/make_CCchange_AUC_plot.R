@@ -89,6 +89,7 @@ make_CCchange_AUC_plot <- function() {
     scale_fill_Publication() +
     theme(axis.text = element_text(angle = 90, hjust = 1)) 
   ggsave(file.path(fig_dir, 'CC_wphase_all_compounds.png'), width = 4.5, height = 3.5)
+  ggsave(file.path(fig_dir, 'CC_wphase_all_compounds.pdf'), width = 4.5, height = 3.5)
   
  
   #MAKE SCATTERPLOT OF DELTA-PHASE SENS CORRELATIONS
@@ -111,41 +112,9 @@ make_CCchange_AUC_plot <- function() {
     xlab('S-phase sensitivity corr.') +
     ylab('G2/M-phase sensitivity corr.')
   ggsave(file.path(fig_dir, 'G2M_S_sens_corrs.png'), width = 4, height = 3.5)
-
+  ggsave(file.path(fig_dir, 'G2M_S_sens_corrs.pdf'), width = 4, height = 3.5)
+  
   write_rds(aa, file.path(results_dir, 'CC_arrest_stats.rds'))
 
-  
-  library(pals)
-  library(plot3D)
-  aa %<>% mutate(drug = factor(drug))
-  color = pals::alphabet(nlevels(aa$drug)) %>% set_names(levels(aa$drug))
-  aa %<>% mutate(col = color[drug])
-  x <- aa$S_cor
-  y <- aa$G2M_cor
-  z <- aa$G1_cor
-  # Compute the linear regression (z = ax + by + d)
-  fit <- lm(z ~ x + y)
-  # predict values on regular xy grid
-  grid.lines = 8
-  x.pred <- seq(min(x), max(x), length.out = grid.lines)
-  y.pred <- seq(min(y), max(y), length.out = grid.lines)
-  xy <- expand.grid( x = x.pred, y = y.pred)
-  z.pred <- matrix(predict(fit, newdata = xy), 
-                   nrow = grid.lines, ncol = grid.lines)
-  # fitted points for droplines to surface
-  fitpoints <- predict(fit)
-  # dev.off()
-  # png(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.png'), width = 4.5, height = 4.5, units = 'in', res = 300)
-  pdf(file.path(fig_dir, 'G2M_S_G1_sens_all_corrs.pdf'), width = 4.5, height = 4.5)
-  # scatter plot with regression plane
-  scatter3D(x, y, z, pch = 16, cex = 1.5, col = aa$col, colvar = NULL,
-            theta = 110, phi = 20, ticktype = "detailed",
-            xlab = "S cor.", ylab = "G2/M cor.", zlab = "G0/G1 cor.",
-            surf = list(x = x.pred, y = y.pred, z = z.pred,
-                        facets = NA, fit = fitpoints, lwd = 0.5, col = 'darkgray'),
-            bty = 'b2')
-  text3D(x+0.1,y+0.075,z, pch=10,labels=aa$drug, col = aa$col, add=TRUE, cex=0.75)
-  dev.off()
-  
 
 }

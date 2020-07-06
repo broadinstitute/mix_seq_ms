@@ -28,6 +28,8 @@ make_viability_sig_plots <- function(cur_expt) {
     theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_int_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
+  ggsave(file.path(fig_dir, sprintf('%s_int_volcano.pdf', cur_expt$expt_name)),
+         width = 4, height = 3.5)
   
   limma_res$res_slope %>% 
     ggplot(aes(logFC, -log10(P.Value))) +
@@ -41,7 +43,9 @@ make_viability_sig_plots <- function(cur_expt) {
     theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_slope_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
-
+  ggsave(file.path(fig_dir, sprintf('%s_slope_volcano.pdf', cur_expt$expt_name)),
+         width = 4, height = 3.5)
+  
   limma_res$res_avg %>% 
     ggplot(aes(logFC, -log10(P.Value))) +
     geom_point(fill = 'black', pch = 21, size = volc_point_size, alpha = 0.8, color = 'white', stroke = 0.1) +
@@ -54,21 +58,29 @@ make_viability_sig_plots <- function(cur_expt) {
     theme_Publication() 
   ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.png', cur_expt$expt_name)),
          width = 4, height = 3.5)
-    
+  ggsave(file.path(fig_dir, sprintf('%s_avg_volcano.pdf', cur_expt$expt_name)),
+         width = 4, height = 3.5)
+  
   #make GSEA plots
   gene_stat <- limma_res$res_int$logFC %>% set_names(limma_res$res_int$Gene)
   make_hyper_gsa_plot(gene_stat, gsc_data$combined, top_n = globals$gsea_top_n, dir = gsea_dir, n_lab_per = 5, lab_size = 3, max_chars = 30)
   ggsave(file.path(fig_dir, sprintf('%s_int_GSEA.png', cur_expt$expt_name)),
+         width = 5.5, height = 2.5)
+  ggsave(file.path(fig_dir, sprintf('%s_int_GSEA.pdf', cur_expt$expt_name)),
          width = 5.5, height = 2.5)
   
   gene_stat <- limma_res$res_slope$logFC %>% set_names(limma_res$res_slope$Gene)
   make_hyper_gsa_plot(gene_stat, gsc_data$combined, top_n = globals$gsea_top_n, dir = gsea_dir, n_lab_per = 5, lab_size = 3, max_chars = 30)
   ggsave(file.path(fig_dir, sprintf('%s_slope_GSEA.png', cur_expt$expt_name)),
          width = 5.5, height = 2.5)
- 
+  ggsave(file.path(fig_dir, sprintf('%s_slope_GSEA.pdf', cur_expt$expt_name)),
+         width = 5.5, height = 2.5)
+  
   gene_stat <- limma_res$res_avg$logFC %>% set_names(limma_res$res_avg$Gene)
   make_hyper_gsa_plot(gene_stat, gsc_data$combined, top_n = globals$gsea_top_n, dir = gsea_dir, n_lab_per = 5, lab_size = 3, max_chars = 30)
   ggsave(file.path(fig_dir, sprintf('%s_avg_GSEA.png', cur_expt$expt_name)),
+         width = 5.5, height = 2.5)
+  ggsave(file.path(fig_dir, sprintf('%s_avg_GSEA.pdf', cur_expt$expt_name)),
          width = 5.5, height = 2.5)
   
   #load LFC matrix
@@ -90,6 +102,7 @@ make_viability_sig_plots <- function(cur_expt) {
       ylab(sprintf('%s LFC', cur_gene)) +
       theme_Publication()
     ggsave(file.path(fig_dir, sprintf('%s_%s_sens_LFC_scatter.png', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
+    ggsave(file.path(fig_dir, sprintf('%s_%s_sens_LFC_scatter.pdf', cur_expt$drug_name, cur_gene)), width = 3.5, height = 3)
     
     # ggplot(cur_df, aes(sens, baseline)) + 
     #   geom_point(pch = 21, size = 2, alpha = 0.75, fill = 'black', color = 'white', stroke = 0.1) + 
