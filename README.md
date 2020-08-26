@@ -4,6 +4,8 @@ This repo contains code associated with our manuscript describing MIX-Seq, our m
 
 For SNP-classification code, see [single_cell_classification](https://github.com/acwarren/single_cell_classification)
 
+For a step by step guide to get started working with MIX-Seq data, see our [blog post](https://cancerdatascience.org/blog/posts/mix-seq/)
+
 ## Data
 
 The data associated with this analysis can be downloaded from figshare [here](https://figshare.com/articles/MIX-seq_data/10298696)
